@@ -352,7 +352,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                     padding: const EdgeInsets.all(22),
                     children: [
                       const Notice(
-                        'Demo assistant · Sample data only. Changes require your review.',
+                        'Sample data · 30 Oct 2026 · No accounts connected. Changes require your review.',
                       ),
                       const SizedBox(height: 20),
                       if (s.error != null) Notice(s.error!, warning: true),

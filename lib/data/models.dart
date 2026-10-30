@@ -21,10 +21,12 @@ class Entry {
     this.kind = 'expense',
     this.status = 'Completed',
     this.note = '',
+    this.isManual = false,
   });
   final String id, merchant, category, account, kind, status, note;
   final double amount;
   final DateTime date;
+  final bool isManual;
   Entry withCategory(String value) => Entry(
     id: id,
     merchant: merchant,
@@ -35,6 +37,7 @@ class Entry {
     kind: kind,
     status: status,
     note: note,
+    isManual: isManual,
   );
   bool get isSpend => kind == 'expense' || kind == 'refund';
   double get spend => kind == 'expense'
@@ -42,6 +45,30 @@ class Entry {
       : kind == 'refund'
       ? -amount
       : 0;
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'merchant': merchant,
+    'amount': amount,
+    'date': date.toIso8601String(),
+    'category': category,
+    'account': account,
+    'kind': kind,
+    'status': status,
+    'note': note,
+    'isManual': isManual,
+  };
+  factory Entry.fromJson(Map<String, dynamic> json) => Entry(
+    id: json['id'] as String,
+    merchant: json['merchant'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    date: DateTime.parse(json['date'] as String),
+    category: json['category'] as String,
+    account: json['account'] as String,
+    kind: json['kind'] as String,
+    status: json['status'] as String,
+    note: json['note'] as String,
+    isManual: json['isManual'] as bool,
+  );
 }
 
 class Holding {
@@ -166,10 +193,27 @@ class FinancialData {
     6,
     (i) => holdings.fold<double>(0, (sum, h) => sum + h.history[i]),
   );
+  List<double> get cashHistory => const [
+    315000.0,
+    330000.0,
+    350000.0,
+    365000.0,
+    378300.0,
+    396500.0,
+  ];
+  List<double> get liabilityHistory => const [
+    64000.0,
+    61000.0,
+    58000.0,
+    55000.0,
+    51000.0,
+    48500.0,
+  ];
   // Cash and liabilities are monthly snapshots; goals are allocations of savings.
   List<double> get wealthHistory {
-    const cash = [315000.0, 330000.0, 350000.0, 365000.0, 378300.0, 396500.0];
-    const debt = [64000.0, 61000.0, 58000.0, 55000.0, 51000.0, 48500.0];
-    return List.generate(6, (i) => portfolioHistory[i] + cash[i] - debt[i]);
+    final portfolio = portfolioHistory;
+    final cash = cashHistory;
+    final liabilities = liabilityHistory;
+    return List.generate(6, (i) => portfolio[i] + cash[i] - liabilities[i]);
   }
 }

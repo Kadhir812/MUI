@@ -9,6 +9,7 @@ import '../features/wealth/wealth_page.dart';
 import '../features/investments/investments_page.dart';
 import '../features/spending/spending_page.dart';
 import '../features/spending/transaction_page.dart';
+import '../features/spending/expense_form_page.dart';
 import '../features/goals/goals_page.dart';
 import '../features/credit/credit_page.dart';
 import '../features/assistant/assistant_page.dart';
@@ -24,7 +25,29 @@ Page<void> platformPage(
   if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
     return NoTransitionPage<void>(key: state.pageKey, child: child);
   }
-  return MaterialPage<void>(key: state.pageKey, child: child);
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final transition = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: transition,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.025, 0),
+            end: Offset.zero,
+          ).animate(transition),
+          child: child,
+        ),
+      );
+    },
+  );
 }
 
 GoRouter makeRouter() => GoRouter(
@@ -69,6 +92,10 @@ GoRouter makeRouter() => GoRouter(
               10,
         ),
       ),
+    ),
+    GoRoute(
+      path: '/expenses/new',
+      pageBuilder: (c, s) => platformPage(c, s, const ExpenseFormPage()),
     ),
     GoRoute(
       path: '/transactions/:id',

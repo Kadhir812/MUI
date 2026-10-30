@@ -62,7 +62,7 @@ class AccountPage extends ConsumerWidget {
                       e.merchant,
                       s.amount(e.amount, decimals: true),
                       subtitle:
-                          '${e.date.day}/${e.date.month}/2026 · ${e.kind}',
+                          '${e.isManual ? 'You added · ' : ''}${e.date.day}/${e.date.month}/2026 · ${e.kind}',
                       onTap: () => context.push('/transactions/${e.id}'),
                     ),
                   )

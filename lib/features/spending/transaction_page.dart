@@ -121,8 +121,10 @@ class TransactionPage extends ConsumerWidget {
             child: const Text('Undo last change'),
           ),
         const SizedBox(height: 20),
-        const Muted(
-          'Sample transaction. Category changes update spending totals and assistant explanations immediately.',
+        Muted(
+          e.isManual
+              ? 'Expense added by you. It updates spending totals but does not change sample account balances or net worth.'
+              : 'Sample transaction. Category changes update spending totals and assistant explanations immediately.',
         ),
       ],
     );

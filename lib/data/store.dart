@@ -56,20 +56,49 @@ class FinanceStore extends ChangeNotifier {
   }
 
   String _snapshot() => jsonEncode({
-    'schema': 1,
+    'schema': 2,
     'dark': dark,
     'hidden': hidden,
     'categories': {for (final e in data.entries) e.id: e.category},
     'goals': data.goals.map((g) => g.toJson()).toList(),
+    'manualEntries': data.entries
+        .where((entry) => entry.isManual)
+        .map((entry) => entry.toJson())
+        .toList(),
   });
   void _restore(String raw) {
     final j = jsonDecode(raw) as Map<String, dynamic>;
-    if (j['schema'] != 1) throw const FormatException('Unsupported snapshot');
+    final schema = j['schema'];
+    if (schema != 1 && schema != 2) {
+      throw const FormatException('Unsupported snapshot');
+    }
     final fresh = seedData();
     final overrides = j['categories'] as Map<String, dynamic>;
     final goals = (j['goals'] as List)
         .map((g) => Goal.fromJson(Map<String, dynamic>.from(g)))
         .toList();
+    final manualEntries = schema == 2
+        ? (j['manualEntries'] as List)
+              .map((entry) => Entry.fromJson(Map<String, dynamic>.from(entry)))
+              .toList()
+        : <Entry>[];
+    if (manualEntries.any(
+      (entry) =>
+          !entry.isManual ||
+          entry.id.isEmpty ||
+          entry.merchant.trim().isEmpty ||
+          entry.merchant.length > 80 ||
+          entry.kind != 'expense' ||
+          !entry.amount.isFinite ||
+          entry.amount <= 0 ||
+          entry.amount > 1000000000 ||
+          entry.date.isAfter(demoDate) ||
+          !categories.contains(entry.category) ||
+          !const ['Everyday account', 'Credit card'].contains(entry.account) ||
+          entry.note.length > 200,
+    )) {
+      throw const FormatException('Invalid manual transaction');
+    }
     if (goals.any(
       (g) =>
           g.target <= 0 ||
@@ -86,7 +115,8 @@ class FinanceStore extends ChangeNotifier {
                 ? e.withCategory(overrides[e.id])
                 : e,
           )
-          .toList(),
+          .toList()
+        ..addAll(manualEntries),
       holdings: fresh.holdings,
       goals: goals,
     );
@@ -129,6 +159,52 @@ class FinanceStore extends ChangeNotifier {
     }
     data.entries[index] = data.entries[index].withCategory(category);
   });
+  Future<bool> addExpense({
+    required String merchant,
+    required double amount,
+    required DateTime date,
+    required String category,
+    required String account,
+    String note = '',
+  }) {
+    final normalizedMerchant = merchant.trim();
+    if (normalizedMerchant.isEmpty ||
+        normalizedMerchant.length > 80 ||
+        !amount.isFinite ||
+        amount <= 0 ||
+        amount > 1000000000 ||
+        date.isAfter(demoDate) ||
+        !categories.contains(category) ||
+        !const ['Everyday account', 'Credit card'].contains(account) ||
+        note.length > 200) {
+      error = 'Check the expense details and try again.';
+      notifyListeners();
+      return Future.value(false);
+    }
+
+    final baseId = 'manual-${DateTime.now().microsecondsSinceEpoch}';
+    var id = baseId;
+    var suffix = 1;
+    while (data.entries.any((entry) => entry.id == id)) {
+      id = '$baseId-$suffix';
+      suffix++;
+    }
+    return _commit(() {
+      data.entries.add(
+        Entry(
+          id: id,
+          merchant: normalizedMerchant,
+          amount: amount,
+          date: date,
+          category: category,
+          account: account,
+          kind: 'expense',
+          note: note.trim(),
+          isManual: true,
+        ),
+      );
+    });
+  }
   Future<bool> saveGoal(Goal goal) => _commit(() {
     if (goal.name.trim().isEmpty ||
         goal.target <= 0 ||

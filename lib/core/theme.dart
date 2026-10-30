@@ -2,12 +2,30 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const teal = Color(0xFF089981); // TradingView signature emerald
+const paletteBlue = Color(0xFFB0D0D3);
+const paletteRose = Color(0xFFC08497);
+const paletteCoral = Color(0xFFF7AF9D);
+const paletteSand = Color(0xFFF7E3AF);
+const paletteCream = Color(0xFFF3EEC3);
+const paletteInk = Color(0xFF493840);
+const paletteMuted = Color(0xFF725C64);
+
+const nightBackground = Color(0xFF191A18);
+const nightSurface = Color(0xFF242521);
+const nightSurfaceRaised = Color(0xFF30312C);
+const nightText = Color(0xFFE8E3D8);
+const nightMutedText = Color(0xFFB7B0A4);
+const nightRose = Color(0xFFD4A79A);
+const nightSage = Color(0xFFB5C4B5);
+const nightOutline = Color(0xFF4A4A42);
+
+// Keep these visualization colors stable when changing the interface palette.
+const teal = Color(0xFF089981);
 const neonTeal = Color(0xFF00D2A0);
-const ink = Color(0xFF0F172A);
-const slate = Color(0xFF64748B);
 const chartGreen = Color(0xFF089981);
 const chartRed = Color(0xFFF23645);
+const chartGridLight = Color(0xFFE2E8F0);
+const chartGridDark = Color(0xFF1E293B);
 
 const assetColors = [
   Color(0xFF3B82F6), // Vibrant Blue (Stocks)
@@ -27,17 +45,38 @@ const categoryColors = [
 
 ThemeData appTheme(bool dark) {
   final baseScheme = ColorScheme.fromSeed(
-    seedColor: teal,
+    seedColor: paletteRose,
     brightness: dark ? Brightness.dark : Brightness.light,
   );
 
   final scheme = baseScheme.copyWith(
-    primary: dark ? neonTeal : teal,
-    surface: dark ? const Color(0xFF131A24) : Colors.white,
-    onSurface: dark ? const Color(0xFFF1F5F9) : ink,
-    onSurfaceVariant: dark ? const Color(0xFF94A3B8) : slate,
-    outlineVariant: dark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-    surfaceContainerHighest: dark ? const Color(0xFF1A2332) : const Color(0xFFF1F5F9),
+    primary: dark ? nightRose : paletteRose,
+    onPrimary: dark ? nightBackground : paletteInk,
+    primaryContainer: dark ? const Color(0xFF42332F) : paletteSand,
+    onPrimaryContainer: dark ? const Color(0xFFF0D8D0) : paletteInk,
+    secondary: dark ? nightSage : paletteBlue,
+    onSecondary: dark ? nightBackground : paletteInk,
+    secondaryContainer: dark ? const Color(0xFF343B34) : paletteBlue,
+    onSecondaryContainer: dark ? const Color(0xFFDCE6D9) : paletteInk,
+    tertiary: dark ? const Color(0xFFD8C19B) : paletteCoral,
+    onTertiary: dark ? nightBackground : paletteInk,
+    tertiaryContainer: dark ? const Color(0xFF403A2F) : paletteCoral,
+    onTertiaryContainer: dark ? const Color(0xFFF0E3CA) : paletteInk,
+    error: dark ? const Color(0xFFE5A39B) : paletteRose,
+    onError: dark ? nightBackground : paletteInk,
+    errorContainer: dark ? const Color(0xFF4A302D) : paletteCoral,
+    onErrorContainer: dark ? const Color(0xFFF6DAD5) : paletteInk,
+    surfaceTint: dark ? nightRose : paletteRose,
+    surface: dark ? nightSurface : Colors.white,
+    onSurface: dark ? nightText : paletteInk,
+    onSurfaceVariant: dark ? nightMutedText : paletteMuted,
+    outline: dark ? nightOutline : paletteMuted,
+    outlineVariant: dark ? nightOutline : paletteBlue.withValues(alpha: 0.8),
+    surfaceContainerLowest: dark ? nightBackground : Colors.white,
+    surfaceContainerLow: dark ? const Color(0xFF20211E) : Colors.white,
+    surfaceContainer: dark ? const Color(0xFF292A25) : Colors.white,
+    surfaceContainerHigh: dark ? const Color(0xFF2D2E29) : paletteCream,
+    surfaceContainerHighest: dark ? nightSurfaceRaised : paletteCream,
   );
 
   final mainFont = GoogleFonts.plusJakartaSans().fontFamily;
@@ -46,9 +85,10 @@ ThemeData appTheme(bool dark) {
     useMaterial3: true,
     fontFamily: mainFont,
     colorScheme: scheme,
-    scaffoldBackgroundColor: dark ? const Color(0xFF0A0E14) : const Color(0xFFF8FAFC),
+    shadowColor: dark ? Colors.black : paletteRose,
+    scaffoldBackgroundColor: dark ? nightBackground : Colors.white,
     appBarTheme: AppBarTheme(
-      backgroundColor: dark ? const Color(0xFF0A0E14) : const Color(0xFFF8FAFC),
+      backgroundColor: dark ? nightBackground : Colors.white,
       foregroundColor: scheme.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -66,35 +106,39 @@ ThemeData appTheme(bool dark) {
       thickness: 1,
     ),
     inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: scheme.surface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+      filled: false,
+      border: UnderlineInputBorder(
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+      focusedBorder: UnderlineInputBorder(
         borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(vertical: 14),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size(48, 52),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: TextStyle(fontFamily: mainFont, fontWeight: FontWeight.w600, fontSize: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        textStyle: TextStyle(
+          fontFamily: mainFont,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(48, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        side: BorderSide(color: scheme.outlineVariant),
-        textStyle: TextStyle(fontFamily: mainFont, fontWeight: FontWeight.w600, fontSize: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        side: BorderSide(color: Colors.transparent),
+        textStyle: TextStyle(
+          fontFamily: mainFont,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
       ),
     ),
     chipTheme: ChipThemeData(

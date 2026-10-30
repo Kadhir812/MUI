@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/formatters.dart';
+import '../data/models.dart';
 import '../data/store.dart';
 
 class PageFrame extends ConsumerWidget {
@@ -22,7 +24,6 @@ class PageFrame extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final store = ref.watch(storeProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +47,8 @@ class PageFrame extends ConsumerWidget {
             letterSpacing: -0.4,
           ),
         ),
-        actions: actions ??
+        actions:
+            actions ??
             [
               IconButton(
                 tooltip: 'Search your finances',
@@ -70,6 +72,36 @@ class PageFrame extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 48),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'SAMPLE DATA · ${shortDate(demoDate)} · No accounts connected',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.2,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       if (store.error != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -94,26 +126,26 @@ class PageFrame extends ConsumerWidget {
 
 /// Staggered Entrance Animation for silky smooth page reveals
 class StaggeredEntrance extends StatelessWidget {
-  const StaggeredEntrance({
-    super.key,
-    required this.child,
-    this.delayMs = 0,
-  });
+  const StaggeredEntrance({super.key, required this.child, this.delayMs = 0});
 
   final Widget child;
   final int delayMs;
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
+      return child;
+    }
+
     return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 400 + delayMs),
+      duration: Duration(milliseconds: 300 + delayMs),
       curve: Curves.easeOutCubic,
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, val, child) {
         return Opacity(
           opacity: val,
           child: Transform.translate(
-            offset: Offset(0, (1 - val) * 14),
+            offset: Offset(0, (1 - val) * 10),
             child: child,
           ),
         );
@@ -123,20 +155,12 @@ class StaggeredEntrance extends StatelessWidget {
   }
 }
 
-/// Modern TradingView-styled Card Panel with micro-elevation, subtle border,
-/// and smooth interactive press animations.
+/// Softly elevated section with a curved edge and restrained shadow.
 class Panel extends StatefulWidget {
-  const Panel({
-    super.key,
-    required this.child,
-    this.onTap,
-    this.tint,
-    this.padding = 20,
-  });
+  const Panel({super.key, required this.child, this.onTap, this.padding = 20});
 
   final Widget child;
   final VoidCallback? onTap;
-  final Color? tint;
   final double padding;
 
   @override
@@ -149,48 +173,47 @@ class _PanelState extends State<Panel> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: AnimatedScale(
-        scale: _pressed ? 0.985 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOutQuad,
-        child: Container(
+        scale: _pressed && !reduceMotion ? 0.99 : 1,
+        duration: reduceMotion
+            ? Duration.zero
+            : const Duration(milliseconds: 140),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: widget.tint ?? scheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF1E2836)
-                  : const Color(0xFFE2E8F0),
-              width: 1,
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+              color: Theme.of(context).shadowColor.withValues(
+                alpha: isDark ? (_pressed ? 0.16 : 0.22) : (_pressed ? 0.08 : 0.12),
+              ),
+              blurRadius: _pressed ? 14 : 24,
+              spreadRadius: _pressed ? -5 : -3,
+              offset: Offset(0, _pressed ? 3 : 8),
             ),
-            boxShadow: isDark
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            ],
           ),
-          clipBehavior: Clip.antiAlias,
           child: Material(
             color: Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: widget.onTap,
-              onHighlightChanged: (h) => setState(() => _pressed = h),
-              splashColor: scheme.primary.withValues(alpha: 0.08),
-              highlightColor: scheme.primary.withValues(alpha: 0.04),
+              onHighlightChanged: (highlighted) =>
+                  setState(() => _pressed = highlighted),
+              splashColor: scheme.primary.withValues(alpha: 0.06),
+              highlightColor: Colors.transparent,
               child: Padding(
                 padding: EdgeInsets.all(widget.padding),
                 child: widget.child,
@@ -219,9 +242,9 @@ class SectionTitle extends StatelessWidget {
           child: Text(
             text,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
             ),
           ),
         ),
@@ -309,20 +332,17 @@ class Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 10, 0, 10),
       decoration: BoxDecoration(
-        color: warning
-            ? scheme.errorContainer.withValues(alpha: isDark ? 0.4 : 0.6)
-            : scheme.primary.withValues(alpha: isDark ? 0.1 : 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: warning
-              ? scheme.error.withValues(alpha: 0.3)
-              : scheme.primary.withValues(alpha: 0.2),
-          width: 1,
+        border: Border(
+          left: BorderSide(
+            color: warning
+                ? scheme.error.withValues(alpha: 0.65)
+                : scheme.primary.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
       ),
       child: Row(
@@ -429,7 +449,9 @@ class DataRowTile extends StatelessWidget {
             Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
           ],
         ],
@@ -445,8 +467,8 @@ class AskButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: OutlinedButton.icon(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: TextButton.icon(
       onPressed: () =>
           context.push('/assistant?q=${Uri.encodeComponent(prompt)}'),
       icon: const Icon(Icons.auto_awesome_outlined, size: 17),
@@ -458,7 +480,7 @@ class AskButton extends StatelessWidget {
   );
 }
 
-/// TradingView-inspired segmented pill bar selector with smooth animated slide indicator
+/// Minimal text selector with an animated underline.
 class Choices extends StatelessWidget {
   const Choices({
     super.key,
@@ -474,66 +496,60 @@ class Choices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF131A24) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? const Color(0xFF1E2836) : const Color(0xFFE2E8F0),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: items.map((item) {
-            final isChosen = selected == item;
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: items.map((item) {
+          final isChosen = selected == item;
 
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onSelect(item);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isChosen
-                        ? (isDark ? const Color(0xFF1E293B) : Colors.white)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: isChosen
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Text(
-                    item,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: isChosen ? FontWeight.w700 : FontWeight.w500,
-                      color: isChosen
-                          ? scheme.onSurface
-                          : scheme.onSurfaceVariant,
+          return Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onSelect(item);
+              },
+              child: AnimatedContainer(
+                duration: reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: isChosen
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isChosen
+                            ? scheme.onSurface
+                            : scheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    AnimatedContainer(
+                      duration: reduceMotion
+                          ? Duration.zero
+                          : const Duration(milliseconds: 180),
+                      curve: Curves.easeOutCubic,
+                      height: 2,
+                      color: isChosen ? scheme.primary : Colors.transparent,
+                    ),
+                  ],
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

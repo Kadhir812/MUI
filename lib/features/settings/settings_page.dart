@@ -22,7 +22,7 @@ class SettingsPage extends ConsumerWidget {
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Dark appearance'),
-                subtitle: const Text('A quieter palette for evenings'),
+                subtitle: const Text('Warm, softer contrast for evening use'),
                 value: s.dark,
                 onChanged: s.busy ? null : (v) => s.setDark(v),
               ),
@@ -51,7 +51,7 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
         const Notice(
-          'Still stores sample edits on this device. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
+          'Still stores sample edits and expenses you add on this device. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
         ),
         const SizedBox(height: 20),
         const Muted(
@@ -75,7 +75,7 @@ class SettingsPage extends ConsumerWidget {
                     builder: (ctx) => AlertDialog(
                       title: const Text('Reset sample data?'),
                       content: const Text(
-                        'Goal edits and transaction categories return to their starting values. Your appearance and privacy preferences stay unchanged. You can undo this reset.',
+                        'Goal edits, transaction categories, and expenses you added are removed. Your appearance and privacy preferences stay unchanged. You can undo this reset.',
                       ),
                       actions: [
                         TextButton(

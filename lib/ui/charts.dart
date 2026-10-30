@@ -20,6 +20,7 @@ class HistoryChart extends ConsumerStatefulWidget {
     this.height = 200,
     this.compact = false,
     this.title = 'Value history',
+    this.showTimeframes = false,
   });
 
   final List<double> values;
@@ -27,6 +28,7 @@ class HistoryChart extends ConsumerStatefulWidget {
   final double height;
   final bool compact;
   final String title;
+  final bool showTimeframes;
 
   @override
   ConsumerState<HistoryChart> createState() => _HistoryChartState();
@@ -35,12 +37,15 @@ class HistoryChart extends ConsumerStatefulWidget {
 class _HistoryChartState extends ConsumerState<HistoryChart> {
   int? _scrubIndex;
   double? _scrubNormalizedX;
+  String _timeframe = '1M';
 
-  void _onScrub(Offset localPosition, double width) {
-    if (widget.values.isEmpty || width <= 0) return;
+  void _onScrub(Offset localPosition, double width, int count) {
+    if (count == 0 || width <= 0) return;
     final clampedX = localPosition.dx.clamp(0.0, width);
-    final count = widget.values.length;
-    final index = ((clampedX / width) * (count - 1)).round().clamp(0, count - 1);
+    final index = ((clampedX / width) * (count - 1)).round().clamp(
+      0,
+      count - 1,
+    );
     if (_scrubIndex != index) {
       HapticFeedback.selectionClick();
     }
@@ -74,18 +79,37 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
       );
     }
 
+    final startIndex = widget.showTimeframes
+        ? switch (_timeframe) {
+            '1D' || '1W' => widget.values.length - 1,
+            '1M' => math.max(0, widget.values.length - 2),
+            _ => 0,
+          }
+        : 0;
+    final values = widget.values.sublist(startIndex);
+    final labels = List.generate(values.length, (index) {
+      final sourceIndex = startIndex + index;
+      return sourceIndex < widget.labels.length
+          ? widget.labels[sourceIndex]
+          : 'Snapshot ${sourceIndex + 1}';
+    });
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
     // Determine performance color (green if positive overall return, red if down)
-    final firstVal = widget.values.first;
-    final lastVal = widget.values.last;
+    final firstVal = values.first;
+    final lastVal = values.last;
     final isBull = lastVal >= firstVal;
     final chartAccent = isBull ? (isDark ? neonTeal : chartGreen) : chartRed;
 
     // Current displayed values (scrubbed or latest)
-    final activeIndex = _scrubIndex ?? (widget.values.length - 1);
-    final activeVal = widget.values[activeIndex];
-    final activeLabel = widget.labels.length > activeIndex ? widget.labels[activeIndex] : '';
+    final activeIndex = (_scrubIndex ?? (values.length - 1)).clamp(
+      0,
+      values.length - 1,
+    );
+    final activeVal = values[activeIndex];
+    final activeLabel = labels[activeIndex];
     final deltaFromStart = activeVal - firstVal;
     final deltaPct = firstVal == 0 ? 0.0 : (deltaFromStart / firstVal) * 100;
     final isDeltaPos = deltaFromStart >= 0;
@@ -93,6 +117,16 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (widget.showTimeframes)
+          Choices(
+            items: const ['1D', '1W', '1M', '1Y'],
+            selected: _timeframe,
+            onSelect: (value) => setState(() {
+              _timeframe = value;
+              _scrubIndex = null;
+              _scrubNormalizedX = null;
+            }),
+          ),
         if (!widget.compact) ...[
           // TradingView Top Bar readout (wrap for narrow screens)
           Wrap(
@@ -111,9 +145,14 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2.5,
+                ),
                 decoration: BoxDecoration(
-                  color: (isDeltaPos ? chartGreen : chartRed).withValues(alpha: isDark ? 0.2 : 0.12),
+                  color: (isDeltaPos ? chartGreen : chartRed).withValues(
+                    alpha: isDark ? 0.2 : 0.12,
+                  ),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -121,16 +160,20 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: isDeltaPos ? (isDark ? neonTeal : chartGreen) : chartRed,
+                    color: isDeltaPos
+                        ? (isDark ? neonTeal : chartGreen)
+                        : chartRed,
                     fontFeatures: const [ui.FontFeature.tabularFigures()],
                   ),
                 ),
               ),
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
+                duration: reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
                 child: Text(
                   _scrubIndex != null ? activeLabel : 'Overall',
-                  key: ValueKey(activeLabel),
+                  key: ValueKey((_scrubIndex, activeLabel)),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -150,40 +193,68 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
             final chartHeight = widget.height;
 
             return GestureDetector(
-              onHorizontalDragDown: (d) => _onScrub(d.localPosition, chartWidth),
-              onHorizontalDragUpdate: (d) => _onScrub(d.localPosition, chartWidth),
+              onHorizontalDragDown: (d) =>
+                  _onScrub(d.localPosition, chartWidth, values.length),
+              onHorizontalDragUpdate: (d) =>
+                  _onScrub(d.localPosition, chartWidth, values.length),
               onHorizontalDragEnd: (_) => _onScrubEnd(),
               onHorizontalDragCancel: () => _onScrubEnd(),
-              onTapDown: (d) => _onScrub(d.localPosition, chartWidth),
+              onTapDown: (d) =>
+                  _onScrub(d.localPosition, chartWidth, values.length),
               onTapUp: (_) => _onScrubEnd(),
               child: MouseRegion(
-                onHover: (e) => _onScrub(e.localPosition, chartWidth),
+                onHover: (e) =>
+                    _onScrub(e.localPosition, chartWidth, values.length),
                 onExit: (_) => _onScrubEnd(),
                 cursor: SystemMouseCursors.precise,
                 child: SizedBox(
                   width: chartWidth,
                   height: chartHeight,
-                  child: TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 650),
-                    curve: Curves.easeOutCubic,
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    builder: (context, progress, _) {
-                      return CustomPaint(
-                        size: Size(chartWidth, chartHeight),
-                        painter: _TradingViewChartPainter(
-                          values: widget.values,
-                          accentColor: chartAccent,
-                          isDark: isDark,
-                          progress: progress,
-                          scrubNormalizedX: _scrubNormalizedX,
-                          scrubIndex: _scrubIndex,
-                          compact: widget.compact,
-                          gridColor: Theme.of(context).colorScheme.outlineVariant,
-                          surfaceColor: Theme.of(context).colorScheme.surface,
-                          textColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                  child: AnimatedSwitcher(
+                    duration: reduceMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 280),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.985, end: 1).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
                         ),
-                      );
-                    },
+                        child: child,
+                      ),
+                    ),
+                    child: TweenAnimationBuilder<double>(
+                      key: ValueKey('${widget.title}-$startIndex'),
+                      duration: reduceMotion
+                          ? Duration.zero
+                          : const Duration(milliseconds: 650),
+                      curve: Curves.easeOutCubic,
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      builder: (context, progress, _) {
+                        return CustomPaint(
+                          size: Size(chartWidth, chartHeight),
+                          painter: _TradingViewChartPainter(
+                            values: values,
+                            accentColor: chartAccent,
+                            isDark: isDark,
+                            progress: progress,
+                            scrubNormalizedX: _scrubNormalizedX,
+                            scrubIndex: _scrubIndex,
+                            compact: widget.compact,
+                            gridColor: isDark ? chartGridDark : chartGridLight,
+                            surfaceColor: Theme.of(context).colorScheme.surface,
+                            textColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -197,39 +268,107 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            for (var i = 0; i < widget.labels.length; i++)
-              if (widget.compact && (i != 0 && i != widget.labels.length - 1))
+            for (var i = 0; i < labels.length; i++)
+              if (widget.compact && (i != 0 && i != labels.length - 1))
                 const SizedBox.shrink()
               else
                 Text(
-                  widget.labels[i],
+                  labels[i],
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: (_scrubIndex == i)
                         ? chartAccent
-                        : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
           ],
         ),
-
+        if (widget.showTimeframes) ...[
+          const SizedBox(height: 8),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: reduceMotion
+                            ? Duration.zero
+                            : const Duration(milliseconds: 160),
+                        child: Text(
+                          activeLabel,
+                          key: ValueKey(activeLabel),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: reduceMotion
+                          ? Duration.zero
+                          : const Duration(milliseconds: 160),
+                      child: Text(
+                        store.amount(activeVal),
+                        key: ValueKey(activeVal),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [ui.FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ],
+          ),
+          if (values.length == 1 || _timeframe == '1Y') ...[
+            const SizedBox(height: 6),
+            Muted(
+              values.length == 1
+                  ? 'Only monthly snapshots are available for this range.'
+                  : 'Monthly snapshots · ${labels.first}–${labels.last} 2026',
+            ),
+          ],
+        ],
         if (!widget.compact) ...[
           const SizedBox(height: 12),
           ExpansionTile(
+            key: PageStorageKey<String>(
+              '${widget.title} detailed price points',
+            ),
             tilePadding: EdgeInsets.zero,
             title: Text(
               'Detailed price points',
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             children: [
-              for (var i = 0; i < widget.values.length; i++)
-                DataRowTile(widget.labels[i], money(widget.values[i])),
+              for (var i = 0; i < values.length; i++)
+                DataRowTile(labels[i], money(values[i])),
             ],
           ),
         ] else
           Semantics(
-            label: '${widget.title}. ${widget.labels.first}: ${money(widget.values.first)}. ${widget.labels.last}: ${money(widget.values.last)}.',
+            label:
+                '${widget.title}. ${labels.first}: ${money(values.first)}. ${labels.last}: ${money(values.last)}.',
             child: const SizedBox.shrink(),
           ),
       ],
@@ -288,7 +427,14 @@ class _TradingViewChartPainter extends CustomPainter {
       for (var s = 1; s <= gridSteps; s++) {
         final ratio = s / (gridSteps + 1);
         final y = h * ratio;
-        _drawDashedLine(canvas, Offset(0, y), Offset(w, y), gridPaint, dashLength: 4, dashSpace: 4);
+        _drawDashedLine(
+          canvas,
+          Offset(0, y),
+          Offset(w, y),
+          gridPaint,
+          dashLength: 4,
+          dashSpace: 4,
+        );
 
         // Price label on right side
         final priceLevel = maxY - ratio * yRange;
@@ -301,7 +447,8 @@ class _TradingViewChartPainter extends CustomPainter {
             fontFeatures: const [ui.FontFeature.tabularFigures()],
           ),
         );
-        final tp = TextPainter(text: spanText, textDirection: TextDirection.ltr)..layout();
+        final tp = TextPainter(text: spanText, textDirection: TextDirection.ltr)
+          ..layout();
         tp.paint(canvas, Offset(w - tp.width - 4, y - tp.height - 2));
       }
     }
@@ -309,7 +456,7 @@ class _TradingViewChartPainter extends CustomPainter {
     // Convert data to pixel coordinates
     final points = <Offset>[];
     for (var i = 0; i < values.length; i++) {
-      final x = (i / (values.length - 1)) * w;
+      final x = values.length == 1 ? w / 2 : (i / (values.length - 1)) * w;
       final targetY = h - ((values[i] - minY) / yRange) * h;
       // Animate progress up from baseline
       final animatedY = h - (h - targetY) * progress;
@@ -334,6 +481,9 @@ class _TradingViewChartPainter extends CustomPainter {
 
       path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
     }
+    if (points.length == 1) {
+      path.lineTo(points.first.dx, points.first.dy);
+    }
 
     // Gradient fill under the curve
     final fillPath = Path.from(path)
@@ -342,14 +492,10 @@ class _TradingViewChartPainter extends CustomPainter {
       ..close();
 
     final fillPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(0, 0),
-        Offset(0, h),
-        [
-          accentColor.withValues(alpha: isDark ? 0.35 : 0.22),
-          accentColor.withValues(alpha: 0.0),
-        ],
-      );
+      ..shader = ui.Gradient.linear(Offset(0, 0), Offset(0, h), [
+        accentColor.withValues(alpha: isDark ? 0.35 : 0.22),
+        accentColor.withValues(alpha: 0.0),
+      ]);
     canvas.drawPath(fillPath, fillPaint);
 
     // Subtle volume bars along the baseline (TradingView signature)
@@ -362,7 +508,10 @@ class _TradingViewChartPainter extends CustomPainter {
         final by = h - barHeight;
         barPaint.color = accentColor.withValues(alpha: isDark ? 0.12 : 0.08);
         canvas.drawRRect(
-          RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, barWidth, barHeight), const Radius.circular(2)),
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(bx, by, barWidth, barHeight),
+            const Radius.circular(2),
+          ),
           barPaint,
         );
       }
@@ -385,6 +534,9 @@ class _TradingViewChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(path, strokePaint);
+    if (points.length == 1) {
+      canvas.drawCircle(points.first, 3.2, Paint()..color = accentColor);
+    }
 
     // Interactive Crosshair & Scrubbing Element
     if (scrubNormalizedX != null && scrubIndex != null) {
@@ -396,11 +548,25 @@ class _TradingViewChartPainter extends CustomPainter {
       final crosshairPaint = Paint()
         ..color = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.35)
         ..strokeWidth = 1.0;
-      _drawDashedLine(canvas, Offset(scrubX, 0), Offset(scrubX, h), crosshairPaint, dashLength: 4, dashSpace: 4);
+      _drawDashedLine(
+        canvas,
+        Offset(scrubX, 0),
+        Offset(scrubX, h),
+        crosshairPaint,
+        dashLength: 4,
+        dashSpace: 4,
+      );
 
       // Horizontal price crosshair line
       if (!compact) {
-        _drawDashedLine(canvas, Offset(0, scrubY), Offset(w, scrubY), crosshairPaint, dashLength: 4, dashSpace: 4);
+        _drawDashedLine(
+          canvas,
+          Offset(0, scrubY),
+          Offset(w, scrubY),
+          crosshairPaint,
+          dashLength: 4,
+          dashSpace: 4,
+        );
 
         // Price badge on the right axis
         final badgeText = money(values[scrubIndex!]);
@@ -418,7 +584,12 @@ class _TradingViewChartPainter extends CustomPainter {
         )..layout();
 
         final badgeRect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(w - tp.width - 12, scrubY - tp.height / 2 - 4, tp.width + 12, tp.height + 8),
+          Rect.fromLTWH(
+            w - tp.width - 12,
+            scrubY - tp.height / 2 - 4,
+            tp.width + 12,
+            tp.height + 8,
+          ),
           const Radius.circular(6),
         );
         canvas.drawRRect(badgeRect, Paint()..color = accentColor);
@@ -433,7 +604,11 @@ class _TradingViewChartPainter extends CustomPainter {
       );
 
       // Inner white beacon dot with accent border
-      canvas.drawCircle(Offset(scrubX, scrubY), 4.5, Paint()..color = Colors.white);
+      canvas.drawCircle(
+        Offset(scrubX, scrubY),
+        4.5,
+        Paint()..color = Colors.white,
+      );
       canvas.drawCircle(
         Offset(scrubX, scrubY),
         4.5,
@@ -454,7 +629,14 @@ class _TradingViewChartPainter extends CustomPainter {
     }
   }
 
-  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint, {double dashLength = 4, dashSpace = 4}) {
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset p1,
+    Offset p2,
+    Paint paint, {
+    double dashLength = 4,
+    dashSpace = 4,
+  }) {
     final dx = p2.dx - p1.dx;
     final dy = p2.dy - p1.dy;
     final distance = math.sqrt(dx * dx + dy * dy);
@@ -465,7 +647,10 @@ class _TradingViewChartPainter extends CustomPainter {
     var currentDist = 0.0;
 
     while (currentDist < distance) {
-      final start = Offset(p1.dx + unitX * currentDist, p1.dy + unitY * currentDist);
+      final start = Offset(
+        p1.dx + unitX * currentDist,
+        p1.dy + unitY * currentDist,
+      );
       final nextDist = math.min(currentDist + dashLength, distance);
       final end = Offset(p1.dx + unitX * nextDist, p1.dy + unitY * nextDist);
       canvas.drawLine(start, end, paint);
@@ -527,7 +712,9 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
       );
     }
 
-    final selectedValue = widget.selected == null ? total : totals[types.indexOf(widget.selected!)];
+    final selectedValue = widget.selected == null
+        ? total
+        : totals[types.indexOf(widget.selected!)];
     final selectedPct = total > 0 ? (selectedValue / total) * 100 : 0.0;
 
     return Column(
@@ -547,12 +734,15 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
                       final y = d.localPosition.dy - 135;
                       final distance = math.sqrt(x * x + y * y);
                       if (distance < 75 || distance > 135) return;
-                      var angle = (math.atan2(y, x) + math.pi / 2) % (2 * math.pi);
+                      var angle =
+                          (math.atan2(y, x) + math.pi / 2) % (2 * math.pi);
                       var end = 0.0;
                       for (var i = 0; i < types.length; i++) {
                         end += totals[i] / total * math.pi * 2;
                         if (angle <= end) {
-                          widget.onSelect(types[i] == widget.selected ? null : types[i]);
+                          widget.onSelect(
+                            types[i] == widget.selected ? null : types[i],
+                          );
                           HapticFeedback.selectionClick();
                           break;
                         }
@@ -571,7 +761,8 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
                             selected: widget.selected,
                             nested: widget.nested,
                             animProgress: anim,
-                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            isDark:
+                                Theme.of(context).brightness == Brightness.dark,
                           ),
                         );
                       },
@@ -586,9 +777,14 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -611,7 +807,9 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.6,
-                              fontFeatures: const [ui.FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                ui.FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -620,7 +818,9 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -637,7 +837,8 @@ class _AllocationRingState extends ConsumerState<AllocationRing> {
           DataRowTile(
             types[i],
             money(totals[i]),
-            subtitle: '${(totals[i] / total * 100).toStringAsFixed(1)}% of portfolio${widget.selected == types[i] ? ' · Selected' : ''}',
+            subtitle:
+                '${(totals[i] / total * 100).toStringAsFixed(1)}% of portfolio${widget.selected == types[i] ? ' · Selected' : ''}',
             color: assetColors[i],
             onTap: () {
               widget.onSelect(types[i] == widget.selected ? null : types[i]);
@@ -682,7 +883,9 @@ class _ModernRingPainter extends CustomPainter {
       final isExactMatch = selected == types[i];
 
       // Segment thickness pops on selection
-      final strokeWidth = isExactMatch ? (nested ? 22.0 : 32.0) : (nested ? 16.0 : 26.0);
+      final strokeWidth = isExactMatch
+          ? (nested ? 22.0 : 32.0)
+          : (nested ? 16.0 : 26.0);
       final radius = nested ? 95.0 : 108.0;
 
       // Glow on selected arc
@@ -720,7 +923,8 @@ class _ModernRingPainter extends CustomPainter {
         var outerStart = startAngle;
         final items = holdings.where((h) => h.type == types[i]).toList();
         for (var j = 0; j < items.length; j++) {
-          final outerSweep = (items[j].value / total) * (math.pi * 2) * animProgress;
+          final outerSweep =
+              (items[j].value / total) * (math.pi * 2) * animProgress;
           final outerPaint = Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 10.0

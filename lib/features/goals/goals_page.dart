@@ -55,7 +55,7 @@ class GoalsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 20),
         Notice(
-          '${s.amount(s.data.allocatedSavings)} is allocated from your savings account. Goal balances are not additional assets.',
+          'Sample plans only. ${s.amount(s.data.allocatedSavings)} is allocated from the sample savings balance; goals are not additional assets and no money is moved.',
         ),
       ],
     );

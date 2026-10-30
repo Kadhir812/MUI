@@ -133,6 +133,15 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         d.categoryTotals(month).entries.where((e) => e.value > 0).toList()
           ..sort((a, b) => b.value.compareTo(a.value));
     final total = d.spendTotal(month);
+    final manualCount = d.entries
+        .where(
+          (entry) =>
+              entry.isManual &&
+              entry.date.year == 2026 &&
+              entry.date.month == month &&
+              entry.isSpend,
+        )
+        .length;
     final weekly = List.generate(
       5,
       (i) => d
@@ -142,6 +151,20 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
     );
     return PageFrame(
       title: 'Spending & activity',
+      actions: [
+        IconButton(
+          key: const ValueKey('spending-add-expense'),
+          tooltip: 'Add expense',
+          onPressed: () => context.push('/expenses/new'),
+          icon: const Icon(Icons.add_rounded),
+        ),
+        IconButton(
+          tooltip: 'Search your finances',
+          onPressed: () => context.push('/search'),
+          icon: const Icon(Icons.search_rounded),
+        ),
+        const SizedBox(width: 6),
+      ],
       children: [
         Choices(
           items: const ['August', 'September', 'October'],
@@ -159,8 +182,18 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
               : '${s.amount(total - d.spendTotal(month - 1))} change vs ${monthName(month - 1)}',
         ),
         const SizedBox(height: 8),
+        if (manualCount > 0) ...[
+          const SizedBox(height: 6),
+          Muted(
+            '$manualCount expense${manualCount == 1 ? '' : 's'} added by you',
+          ),
+        ],
+        const SizedBox(height: 8),
+        const Notice(
+          'Sample transactions only—not a complete bank history. Spending totals include listed expenses and refunds, exclude income and transfers, and do not reconcile account balances.',
+        ),
         const Muted(
-          'Through day 30. Income and transfers are excluded. Charts show the full month; filters below affect the record list. Summaries round to rupees; records show paise.',
+          'Through day 30. Charts show the full sample month; filters below affect the record list. Summaries round to rupees; records show paise.',
         ),
         Choices(
           items: const ['Categories', 'Weekly trend'],
@@ -271,7 +304,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
                       e.merchant,
                       '${e.kind == 'income' || e.kind == 'refund' ? '+' : ''}${s.amount(e.amount, decimals: true)}',
                       subtitle:
-                          '${e.date.day} ${monthName(e.date.month)} · ${e.category}',
+                          '${e.isManual ? 'You added · ' : ''}${e.date.day} ${monthName(e.date.month)} · ${e.category}',
                       onTap: () => context.push('/transactions/${e.id}'),
                     ),
                   )
