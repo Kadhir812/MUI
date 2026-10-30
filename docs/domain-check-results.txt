@@ -1,0 +1,23 @@
+PASS Holdings reconcile to portfolio
+PASS Original investment reconciles
+PASS Net worth is assets less liabilities
+PASS Latest wealth chart equals summary
+PASS Latest portfolio chart equals holdings
+PASS October spending excludes salary and internal transfer
+PASS September spending reconciles
+PASS Dining insight is derived from records
+PASS Categories reconcile to spending
+PASS Goals allocate existing savings without double counting
+PASS Goal history reconciles to saved amount
+PASS Goal required monthly amount uses remaining contribution months
+PASS Transaction identifiers are unique
+PASS Categorization preserves total spending
+PASS Categorization updates category aggregation
+PASS Refunds reduce net spending
+PASS Proposal matches source goal
+PASS Changed goal invalidates stale proposal
+PASS Ambiguous goal asks user to choose
+PASS Exact goal intent resolves
+PASS Unsupported money movement is not simulated as success
+PASS Every transaction has integer paise precision
+22 financial and intent checks passed.

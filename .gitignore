@@ -1,0 +1,15 @@
+.dart_tool/
+.packages
+build/
+*.log
+.DS_Store
+.idea/
+android/local.properties
+android/.gradle/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+*.xcuserstate
+xcuserdata/
