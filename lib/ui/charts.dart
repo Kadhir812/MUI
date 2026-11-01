@@ -201,7 +201,6 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
               onHorizontalDragCancel: () => _onScrubEnd(),
               onTapDown: (d) =>
                   _onScrub(d.localPosition, chartWidth, values.length),
-              onTapUp: (_) => _onScrubEnd(),
               child: MouseRegion(
                 onHover: (e) =>
                     _onScrub(e.localPosition, chartWidth, values.length),
@@ -263,6 +262,33 @@ class _HistoryChartState extends ConsumerState<HistoryChart> {
         ),
 
         const SizedBox(height: 8),
+
+        if (widget.compact && _scrubIndex != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    activeLabel,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Text(
+                  money(activeVal),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [ui.FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // X-Axis Labels
         Row(

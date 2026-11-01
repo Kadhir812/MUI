@@ -9,6 +9,7 @@ const paletteSand = Color(0xFFF7E3AF);
 const paletteCream = Color(0xFFF3EEC3);
 const paletteInk = Color(0xFF493840);
 const paletteMuted = Color(0xFF725C64);
+const lightBackground = Color(0xFFFFFBF3);
 
 const nightBackground = Color(0xFF191A18);
 const nightSurface = Color(0xFF242521);
@@ -75,8 +76,10 @@ ThemeData appTheme(bool dark) {
     surfaceContainerLowest: dark ? nightBackground : Colors.white,
     surfaceContainerLow: dark ? const Color(0xFF20211E) : Colors.white,
     surfaceContainer: dark ? const Color(0xFF292A25) : Colors.white,
-    surfaceContainerHigh: dark ? const Color(0xFF2D2E29) : paletteCream,
-    surfaceContainerHighest: dark ? nightSurfaceRaised : paletteCream,
+    surfaceContainerHigh: dark
+        ? const Color(0xFF2D2E29)
+        : const Color(0xFFFFF8E8),
+    surfaceContainerHighest: dark ? nightSurfaceRaised : Colors.white,
   );
 
   final mainFont = GoogleFonts.plusJakartaSans().fontFamily;
@@ -86,9 +89,9 @@ ThemeData appTheme(bool dark) {
     fontFamily: mainFont,
     colorScheme: scheme,
     shadowColor: dark ? Colors.black : paletteRose,
-    scaffoldBackgroundColor: dark ? nightBackground : Colors.white,
+    scaffoldBackgroundColor: dark ? nightBackground : lightBackground,
     appBarTheme: AppBarTheme(
-      backgroundColor: dark ? nightBackground : Colors.white,
+      backgroundColor: dark ? nightBackground : lightBackground,
       foregroundColor: scheme.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,

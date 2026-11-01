@@ -68,6 +68,7 @@ class OverviewPage extends ConsumerWidget {
       bottomBar: _HomeAskBox(
         onSubmit: (prompt) => context.push(assistant.destination(prompt, data)),
       ),
+      contentBottomPadding: 16,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 8),
@@ -219,147 +220,93 @@ class OverviewPage extends ConsumerWidget {
             ],
           ),
         ),
-        Panel(
-          padding: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        _DashboardGrid(
+          children: [
+            _CompactMetricCard(
+              key: const ValueKey('home-income-summary'),
+              icon: Icons.south_west_rounded,
+              label: 'Income',
+              value: store.hidden ? '•••' : store.amount(income),
+              detail: 'This month',
+              color: chartGreen,
+              onTap: () => context.push('/income'),
+            ),
+            _CompactMetricCard(
+              key: const ValueKey('home-spending-summary'),
+              icon: Icons.north_east_rounded,
+              label: 'Spent',
+              value: store.hidden ? '•••' : store.amount(spending),
+              detail: 'This month',
+              color: chartRed,
+              onTap: () => context.push('/spending'),
+            ),
+            _CompactMetricCard(
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Budget status',
+              value: 'Open',
+              detail: 'No monthly limit to compare against yet',
+              color: scheme.primary,
+              onTap: () => context.push('/spending'),
+            ),
+            _CompactMetricCard(
+              icon: Icons.show_chart_rounded,
+              label: 'Investments',
+              value: store.hidden ? '•••' : store.amount(data.investmentValue),
+              detail: store.hidden
+                  ? '${data.holdings.length} holdings'
+                  : '${investmentGain >= 0 ? '+' : '-'}${store.amount(investmentGain.abs())} return',
+              color: scheme.primary,
+              onTap: () => context.push('/investments'),
+            ),
+            _CompactMetricCard(
+              icon: Icons.flag_outlined,
+              label: 'Savings goals',
+              value: goal == null
+                  ? 'Start'
+                  : store.hidden
+                  ? '•••'
+                  : '${(goal.progress * 100).round()}%',
+              detail: goal == null ? 'Create a goal' : goal.name,
+              color: scheme.primary,
+              onTap: () => context.push('/goals'),
+            ),
+            _CompactMetricCard(
+              icon: Icons.shield_outlined,
+              label: 'Credit health',
+              value: store.hidden ? '•••' : '782',
+              detail: 'Healthy',
+              color: scheme.primary,
+              onTap: () => context.push('/credit'),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(2, 8, 2, 12),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'This month',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push('/spending'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: const Size(0, 36),
-                    ),
-                    child: const Text('See spending'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _CashflowTapTarget(
-                        key: const ValueKey('home-income-summary'),
-                        label: 'Income',
-                        amount: income,
-                        color: chartGreen,
-                        onTap: () => context.push('/income'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _CashflowTapTarget(
-                        key: const ValueKey('home-spending-summary'),
-                        label: 'Spent',
-                        amount: spending,
-                        color: chartRed,
-                        onTap: () => context.push('/spending'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
+              Expanded(
                 child: Text(
+                  key: const ValueKey('home-cashflow-story'),
                   store.hidden
                       ? 'Your monthly cash-flow story is hidden.'
                       : income >= spending
                       ? 'Recorded income is ${store.amount(income - spending)} ahead of listed spending.'
                       : 'Listed spending is ${store.amount(spending - income)} ahead of recorded income.',
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    height: 1.4,
+                    fontSize: 11,
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Divider(height: 1),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet_outlined,
-                      color: scheme.primary,
-                      size: 19,
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Budget status',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Muted('No monthly limit to compare against yet'),
-                        ],
-                      ),
-                    ),
-                  ],
+              TextButton(
+                onPressed: () => context.push('/spending'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.only(left: 8),
+                  minimumSize: const Size(0, 32),
                 ),
-              ),
-            ],
-          ),
-        ),
-        Panel(
-          padding: 8,
-          child: Column(
-            children: [
-              _SummaryRow(
-                icon: Icons.show_chart_rounded,
-                title: 'Investments',
-                detail: store.hidden
-                    ? '${data.holdings.length} holdings'
-                    : '${data.holdings.length} holdings · ${investmentGain >= 0 ? 'up' : 'down'} ${store.amount(investmentGain.abs())} overall',
-                value: store.amount(data.investmentValue),
-                onTap: () => context.push('/investments'),
-              ),
-              const Divider(height: 1, indent: 54),
-              _SummaryRow(
-                icon: Icons.flag_outlined,
-                title: 'Savings goals',
-                detail: goal == null
-                    ? 'Create your first goal'
-                    : store.hidden
-                    ? '${data.goals.length} goals'
-                    : '${goal.name} is ${(goal.progress * 100).round()}% funded',
-                value: goal == null
-                    ? ''
-                    : store.hidden
-                    ? '•••'
-                    : '${(goal.progress * 100).round()}%',
-                onTap: () => context.push('/goals'),
-              ),
-              const Divider(height: 1, indent: 54),
-              _SummaryRow(
-                icon: Icons.shield_outlined,
-                title: 'Credit health',
-                detail: 'Updated 28 October',
-                value: store.hidden ? '•••' : '782',
-                onTap: () => context.push('/credit'),
+                child: const Text('See spending'),
               ),
             ],
           ),
@@ -659,17 +606,40 @@ class _BalanceMetric extends StatelessWidget {
   );
 }
 
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
+class _DashboardGrid extends StatelessWidget {
+  const _DashboardGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = (constraints.maxWidth - 10) / 2;
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          for (final child in children) SizedBox(width: width, child: child),
+        ],
+      );
+    },
+  );
+}
+
+class _CompactMetricCard extends StatelessWidget {
+  const _CompactMetricCard({
+    super.key,
     required this.icon,
-    required this.title,
-    required this.detail,
+    required this.label,
     required this.value,
+    required this.detail,
+    required this.color,
     required this.onTap,
   });
 
   final IconData icon;
-  final String title, detail, value;
+  final String label, value, detail;
+  final Color color;
   final VoidCallback onTap;
 
   @override
@@ -677,55 +647,57 @@ class _SummaryRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Material(
-      color: Colors.transparent,
+      color: scheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
-          child: Row(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: scheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      detail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: color),
+                  const Spacer(),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              if (value.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Text(
-                  value,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+              const SizedBox(height: 3),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
                 ),
-              ],
-              const SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 19,
-                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                detail,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

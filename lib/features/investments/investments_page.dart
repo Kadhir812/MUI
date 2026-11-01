@@ -38,6 +38,7 @@ class _InvestmentsPageState extends ConsumerState<InvestmentsPage> {
     final start = period == '3 months' ? 3 : 0;
     return PageFrame(
       title: 'Investments',
+      contentBottomPadding: 16,
       children: [
         const Muted('PORTFOLIO VALUE'),
         const SizedBox(height: 8),

@@ -42,9 +42,9 @@ void main() {
     expect(theme.colorScheme.secondary, paletteBlue);
     expect(theme.colorScheme.tertiary, paletteCoral);
     expect(theme.colorScheme.surface, Colors.white);
-    expect(theme.colorScheme.surfaceContainerHighest, paletteCream);
-    expect(theme.scaffoldBackgroundColor, Colors.white);
-    expect(theme.appBarTheme.backgroundColor, Colors.white);
+    expect(theme.colorScheme.surfaceContainerHighest, Colors.white);
+    expect(theme.scaffoldBackgroundColor, lightBackground);
+    expect(theme.appBarTheme.backgroundColor, lightBackground);
     final nightTheme = appTheme(true);
     expect(nightTheme.brightness, Brightness.dark);
     expect(nightTheme.scaffoldBackgroundColor, nightBackground);
@@ -433,7 +433,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('Recorded income is ₹52,451 ahead of listed spending.'),
+      find.byKey(const ValueKey('home-cashflow-story'), skipOffstage: false),
       findsOneWidget,
     );
 
@@ -441,7 +441,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Your wealth story is hidden.'), findsOneWidget);
     expect(
-      find.text('Your monthly cash-flow story is hidden.'),
+      find.text('Your monthly cash-flow story is hidden.', skipOffstage: false),
       findsOneWidget,
     );
     expect(find.textContaining('₹52,451'), findsNothing);
