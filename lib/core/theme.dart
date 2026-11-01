@@ -9,6 +9,9 @@ const paletteSand = Color(0xFFF7E3AF);
 const paletteCream = Color(0xFFF3EEC3);
 const paletteInk = Color(0xFF493840);
 const paletteMuted = Color(0xFF725C64);
+const paletteNavy = Color(0xFF12304A);
+const paletteTeal = Color(0xFF0F766E);
+const lightBackground = Color(0xFFFFFBF3);
 
 const nightBackground = Color(0xFF191A18);
 const nightSurface = Color(0xFF242521);
@@ -45,19 +48,23 @@ const categoryColors = [
 
 ThemeData appTheme(bool dark) {
   final baseScheme = ColorScheme.fromSeed(
-    seedColor: paletteRose,
+    seedColor: paletteNavy,
     brightness: dark ? Brightness.dark : Brightness.light,
   );
 
   final scheme = baseScheme.copyWith(
-    primary: dark ? nightRose : paletteRose,
-    onPrimary: dark ? nightBackground : paletteInk,
+    primary: dark ? nightRose : paletteNavy,
+    onPrimary: dark ? nightBackground : Colors.white,
     primaryContainer: dark ? const Color(0xFF42332F) : paletteSand,
     onPrimaryContainer: dark ? const Color(0xFFF0D8D0) : paletteInk,
-    secondary: dark ? nightSage : paletteBlue,
-    onSecondary: dark ? nightBackground : paletteInk,
-    secondaryContainer: dark ? const Color(0xFF343B34) : paletteBlue,
-    onSecondaryContainer: dark ? const Color(0xFFDCE6D9) : paletteInk,
+    secondary: dark ? nightSage : paletteTeal,
+    onSecondary: dark ? nightBackground : Colors.white,
+    secondaryContainer: dark
+        ? const Color(0xFF343B34)
+        : const Color(0xFFD9F0ED),
+    onSecondaryContainer: dark
+        ? const Color(0xFFDCE6D9)
+        : const Color(0xFF0B4F4A),
     tertiary: dark ? const Color(0xFFD8C19B) : paletteCoral,
     onTertiary: dark ? nightBackground : paletteInk,
     tertiaryContainer: dark ? const Color(0xFF403A2F) : paletteCoral,
@@ -66,12 +73,12 @@ ThemeData appTheme(bool dark) {
     onError: dark ? nightBackground : paletteInk,
     errorContainer: dark ? const Color(0xFF4A302D) : paletteCoral,
     onErrorContainer: dark ? const Color(0xFFF6DAD5) : paletteInk,
-    surfaceTint: dark ? nightRose : paletteRose,
+    surfaceTint: dark ? nightRose : paletteNavy,
     surface: dark ? nightSurface : Colors.white,
     onSurface: dark ? nightText : paletteInk,
     onSurfaceVariant: dark ? nightMutedText : paletteMuted,
     outline: dark ? nightOutline : paletteMuted,
-    outlineVariant: dark ? nightOutline : paletteBlue.withValues(alpha: 0.8),
+    outlineVariant: dark ? nightOutline : paletteTeal.withValues(alpha: 0.35),
     surfaceContainerLowest: dark ? nightBackground : Colors.white,
     surfaceContainerLow: dark ? const Color(0xFF20211E) : Colors.white,
     surfaceContainer: dark ? const Color(0xFF292A25) : Colors.white,
@@ -85,10 +92,10 @@ ThemeData appTheme(bool dark) {
     useMaterial3: true,
     fontFamily: mainFont,
     colorScheme: scheme,
-    shadowColor: dark ? Colors.black : paletteRose,
-    scaffoldBackgroundColor: dark ? nightBackground : Colors.white,
+    shadowColor: dark ? Colors.black : paletteNavy,
+    scaffoldBackgroundColor: dark ? nightBackground : lightBackground,
     appBarTheme: AppBarTheme(
-      backgroundColor: dark ? nightBackground : Colors.white,
+      backgroundColor: dark ? nightBackground : lightBackground,
       foregroundColor: scheme.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,

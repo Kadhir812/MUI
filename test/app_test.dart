@@ -38,13 +38,13 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final theme = Theme.of(tester.element(find.text('still.')));
 
-    expect(theme.colorScheme.primary, paletteRose);
-    expect(theme.colorScheme.secondary, paletteBlue);
+    expect(theme.colorScheme.primary, paletteNavy);
+    expect(theme.colorScheme.secondary, paletteTeal);
     expect(theme.colorScheme.tertiary, paletteCoral);
     expect(theme.colorScheme.surface, Colors.white);
     expect(theme.colorScheme.surfaceContainerHighest, paletteCream);
-    expect(theme.scaffoldBackgroundColor, Colors.white);
-    expect(theme.appBarTheme.backgroundColor, Colors.white);
+    expect(theme.scaffoldBackgroundColor, lightBackground);
+    expect(theme.appBarTheme.backgroundColor, lightBackground);
     final nightTheme = appTheme(true);
     expect(nightTheme.brightness, Brightness.dark);
     expect(nightTheme.scaffoldBackgroundColor, nightBackground);
