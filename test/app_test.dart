@@ -627,10 +627,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Spending & activity'), findsOneWidget);
     expect(
-      find.text(
-        'Spending only · refunds included · transfers excluded.',
-      ),
-      findsOneWidget,
+      find.text('Spending only · refunds included · transfers excluded.'),
+      findsNothing,
     );
     expect(find.text('Groceries · +₹310 vs August'), findsOneWidget);
     expect(tester.takeException(), isNull);

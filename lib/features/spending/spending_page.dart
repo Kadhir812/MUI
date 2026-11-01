@@ -24,13 +24,16 @@ class SpendingPage extends ConsumerStatefulWidget {
 
 class _SpendingPageState extends ConsumerState<SpendingPage> {
   late int month;
+  late int selectedYear;
   late String? category;
   late TextEditingController query;
-  String account = 'All accounts', kind = 'Spending', chart = 'Categories';
+  bool yearView = false;
+  String account = 'All accounts', kind = 'Spending';
   @override
   void initState() {
     super.initState();
     month = widget.initialMonth;
+    selectedYear = demoYear;
     category = widget.initialCategory;
     query = TextEditingController(text: widget.initialQuery);
   }
@@ -115,7 +118,8 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         d.entries
             .where(
               (e) =>
-                  e.date.month == month &&
+                  e.date.year == selectedYear &&
+                  (yearView || e.date.month == month) &&
                   (category == null || e.category == category) &&
                   (account == 'All accounts' || e.account == account) &&
                   (kind == 'All activity' ||
@@ -130,29 +134,31 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
     final totals =
-        d.categoryTotals(month).entries.where((e) => e.value > 0).toList()
+        (yearView
+                ? d.yearCategoryTotals(selectedYear)
+                : d.categoryTotals(month, year: selectedYear))
+            .entries
+            .where((e) => e.value > 0)
+            .toList()
           ..sort((a, b) => b.value.compareTo(a.value));
-    final total = d.spendTotal(month);
-    final selectedChange = category == null
+    final total = yearView
+        ? d
+              .monthlySpendTotals(selectedYear)
+              .fold<double>(0, (sum, value) => sum + value)
+        : d.spendTotal(month, year: selectedYear);
+    final selectedChange = yearView || category == null
         ? null
-        : d.spendTotal(month, category: category) -
-              d.spendTotal(month - 1, category: category);
+        : d.spendTotal(month, category: category, year: selectedYear) -
+              d.spendTotal(month - 1, category: category, year: selectedYear);
     final manualCount = d.entries
         .where(
           (entry) =>
               entry.isManual &&
-              entry.date.year == 2026 &&
-              entry.date.month == month &&
+              entry.date.year == selectedYear &&
+              (yearView || entry.date.month == month) &&
               entry.isSpend,
         )
         .length;
-    final weekly = List.generate(
-      5,
-      (i) => d
-          .spending(month)
-          .where((e) => (e.date.day - 1) ~/ 7 == i)
-          .fold<double>(0, (v, e) => v + e.spend),
-    );
     return PageFrame(
       title: 'Spending & activity',
       actions: [
@@ -164,25 +170,102 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         const SizedBox(width: 6),
       ],
       children: [
-        Choices(
-          items: const ['August', 'September', 'October'],
-          selected: monthName(month),
-          onSelect: (v) => setState(
-            () => month = ['August', 'September', 'October'].indexOf(v) + 8,
+        SizedBox(
+          height: 50,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                for (final entry in List.generate(
+                  12,
+                  (index) => (index + 1, monthName(index + 1)),
+                )..add((0, 'Overview')))
+                  Padding(
+                    padding: const EdgeInsets.only(right: 20),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => setState(() {
+                        yearView = entry.$1 == 0;
+                        if (!yearView) month = entry.$1;
+                      }),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              entry.$2,
+                              style: TextStyle(
+                                fontWeight:
+                                    (yearView
+                                        ? entry.$1 == 0
+                                        : month == entry.$1)
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color:
+                                    (yearView
+                                        ? entry.$1 == 0
+                                        : month == entry.$1)
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              height: 2,
+                              width: 28,
+                              color:
+                                  (yearView ? entry.$1 == 0 : month == entry.$1)
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.transparent,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Muted('TOTAL MONTH SPENDING'),
+              Row(
+                children: [
+                  Expanded(
+                    child: Muted(
+                      yearView ? 'TOTAL YEAR SPENDING' : 'TOTAL MONTH SPENDING',
+                    ),
+                  ),
+                  TextButton.icon(
+                    key: const ValueKey('spending-add-expense'),
+                    onPressed: () => context.push('/expenses/new'),
+                    icon: const Icon(Icons.add_rounded, size: 17),
+                    label: const Text('Add expense'),
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: EdgeInsets.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 4),
               Amount(total, size: 36),
               const SizedBox(height: 8),
               Muted(
-                month == 8
-                    ? 'August · 2026'
-                    : '${s.amount(total - d.spendTotal(month - 1))} change vs ${monthName(month - 1)}',
+                yearView
+                    ? 'January–December · $selectedYear'
+                    : month == 1
+                    ? 'January · $selectedYear'
+                    : '${s.amount(total - d.spendTotal(month - 1, year: selectedYear))} change vs ${monthName(month - 1)}',
               ),
               if (category != null) ...[
                 const SizedBox(height: 14),
@@ -201,137 +284,185 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
             ],
           ),
         ),
-        const Muted('ACTIVITY SHOWN'),
-        const SizedBox(height: 4),
-        const Muted('Spending only · refunds included · transfers excluded.'),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            key: const ValueKey('spending-add-expense'),
-            onPressed: () => context.push('/expenses/new'),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add expense'),
-          ),
-        ),
-        const Muted(
-          'October through day 30 · filters apply to the list below.',
-        ),
-        Choices(
-          items: const ['Categories', 'Weekly trend'],
-          selected: chart,
-          onSelect: (v) => setState(() => chart = v),
-        ),
-        if (chart == 'Categories')
-          Panel(
-            child: Column(
-              children: [
-                for (final entry in totals)
-                  InkWell(
-                    onTap: () => setState(() {
-                      category = category == entry.key ? null : entry.key;
-                      kind = 'Spending';
-                    }),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${entry.key}${category == entry.key ? ' · Selected' : ''}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Text(s.amount(entry.value)),
-                            ],
-                          ),
-                          const SizedBox(height: 9),
-                          if (!s.hidden)
-                            ProgressLine(
-                              entry.value / totals.first.value,
-                              color:
-                                  categoryColors[categories.indexOf(entry.key)],
-                            ),
-                        ],
+        Padding(
+          padding: const EdgeInsets.only(top: 6, bottom: 10),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Spending shape',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-              ],
-            ),
-          )
-        else
-          Panel(
-            child: HistoryChart(
-              values: weekly,
-              labels: const ['1–7', '8–14', '15–21', '22–28', '29–30'],
-              title: 'Weekly spending',
-            ),
+                  Icon(
+                    Icons.touch_app_outlined,
+                    size: 17,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 5),
+                  Muted(yearView ? '$selectedYear' : 'Tap to filter'),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Divider(
+                height: 18,
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.6),
+              ),
+              CategorySpiderChart(
+                categories: totals.map((entry) => entry.key).toList(),
+                values: totals.map((entry) => entry.value).toList(),
+                colors: totals
+                    .map(
+                      (entry) => categoryColors[categories.indexOf(entry.key)],
+                    )
+                    .toList(),
+                selectedCategory: category,
+                monthlyTotals: yearView
+                    ? d.monthlySpendTotals(selectedYear)
+                    : null,
+                monthlyTitle: yearView ? '$selectedYear spending' : null,
+                monthlyLabels: yearView
+                    ? const [
+                        'January',
+                        'February',
+                        'March',
+                        'April',
+                        'May',
+                        'June',
+                        'July',
+                        'August',
+                        'September',
+                        'October',
+                        'November',
+                        'December',
+                      ]
+                    : null,
+                onCategoryTap: (value) => setState(() {
+                  category = category == value ? null : value;
+                  kind = 'Spending';
+                }),
+              ),
+            ],
           ),
+        ),
         const AskButton('Why did spending increase?'),
-        SectionTitle('Transactions', action: 'Filters', onTap: filters),
+        Padding(
+          padding: const EdgeInsets.only(top: 14, bottom: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Transactions',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: filters,
+                icon: const Icon(Icons.tune_rounded, size: 17),
+                label: const Text('Filter'),
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
+          ),
+        ),
         TextField(
           controller: query,
           onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: 'Find merchant or category',
-            labelText: 'Search transactions',
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search_rounded, size: 20),
+            hintText: 'Search merchant or category',
+            suffixIcon: query.text.isEmpty
+                ? null
+                : IconButton(
+                    tooltip: 'Clear search',
+                    onPressed: () {
+                      query.clear();
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                  ),
           ),
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            Chip(label: Text('$kind · $account')),
-            if (category != null)
-              InputChip(
-                label: Text(category!),
-                onDeleted: () => setState(() => category = null),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Muted(
-          '${filtered.length} records · ${s.amount(filtered.fold<double>(0, (v, e) => v + e.spend))} net',
-        ),
-        const SizedBox(height: 12),
-        if (filtered.isEmpty)
-          Panel(
-            child: Column(
-              children: [
-                const Notice('No transactions match these filters.'),
-                TextButton(
-                  onPressed: () => setState(() {
-                    category = null;
-                    account = 'All accounts';
-                    kind = 'Spending';
-                    query.clear();
-                  }),
-                  child: const Text('Clear filters'),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Muted('${filtered.length} records'),
+              const Spacer(),
+              Text(
+                '${s.amount(filtered.fold<double>(0, (v, e) => v + e.spend))} net',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        ),
+        if (filtered.isEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Notice('No transactions match these filters.'),
+              TextButton(
+                onPressed: () => setState(() {
+                  category = null;
+                  account = 'All accounts';
+                  kind = 'Spending';
+                  query.clear();
+                }),
+                child: const Text('Clear filters'),
+              ),
+            ],
           )
         else
-          Panel(
-            child: Column(
-              children: filtered
-                  .map(
-                    (e) => DataRowTile(
-                      e.merchant,
-                      '${e.kind == 'income' || e.kind == 'refund' ? '+' : ''}${s.amount(e.amount, decimals: true)}',
-                      subtitle:
-                          '${e.isManual ? 'You added · ' : ''}${e.date.day} ${monthName(e.date.month)} · ${e.category}',
-                      onTap: () => context.push('/transactions/${e.id}'),
-                    ),
-                  )
-                  .toList(),
-            ),
+          Column(
+            children: [
+              for (var i = 0; i < filtered.length; i++) ...[
+                DataRowTile(
+                  filtered[i].merchant,
+                  '${filtered[i].kind == 'income' || filtered[i].kind == 'refund' ? '+' : ''}${s.amount(filtered[i].amount, decimals: true)}',
+                  subtitle:
+                      '${filtered[i].isManual ? 'You added · ' : ''}${filtered[i].date.day} ${monthName(filtered[i].date.month)} · ${filtered[i].category}',
+                  color:
+                      categoryColors[categories
+                          .indexOf(filtered[i].category)
+                          .clamp(0, categoryColors.length - 1)],
+                  onTap: () => context.push('/transactions/${filtered[i].id}'),
+                ),
+                if (i < filtered.length - 1) const Divider(height: 1),
+              ],
+            ],
           ),
       ],
     );

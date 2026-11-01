@@ -10,6 +10,250 @@ import '../data/models.dart';
 import '../data/store.dart';
 import 'components.dart';
 
+class CategorySpiderChart extends ConsumerWidget {
+  const CategorySpiderChart({
+    super.key,
+    required this.categories,
+    required this.values,
+    required this.colors,
+    this.selectedCategory,
+    this.onCategoryTap,
+    this.monthlyTotals,
+    this.monthlyLabels,
+    this.monthlyTitle,
+  });
+
+  final List<String> categories;
+  final List<double> values;
+  final List<Color> colors;
+  final String? selectedCategory;
+  final ValueChanged<String>? onCategoryTap;
+  final List<double>? monthlyTotals;
+  final List<String>? monthlyLabels;
+  final String? monthlyTitle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(storeProvider).hidden) {
+      return const SizedBox(
+        height: 300,
+        child: Center(child: Muted('Chart hidden for privacy')),
+      );
+    }
+
+    if (categories.isEmpty || values.every((value) => value <= 0)) {
+      return const SizedBox(
+        height: 300,
+        child: Center(child: Muted('No category spending available')),
+      );
+    }
+
+    final hasMonthlyData =
+        monthlyTotals != null &&
+        monthlyLabels != null &&
+        monthlyTotals!.length == monthlyLabels!.length;
+    return Column(
+      children: [
+        SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: LayoutBuilder(
+            builder: (context, constraints) => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: onCategoryTap == null
+                  ? null
+                  : (details) {
+                      final center = Offset(
+                        constraints.maxWidth / 2,
+                        300 / 2 + 5,
+                      );
+                      final delta = details.localPosition - center;
+                      if (delta.distance < 10) return;
+                      var angle = math.atan2(delta.dy, delta.dx) + math.pi / 2;
+                      if (angle < 0) angle += math.pi * 2;
+                      final index =
+                          ((angle / (math.pi * 2)) * categories.length)
+                              .round() %
+                          categories.length;
+                      onCategoryTap!(categories[index]);
+                    },
+              child: CustomPaint(
+                painter: _CategorySpiderChartPainter(
+                  categories: categories,
+                  values: values,
+                  colors: colors,
+                  selectedCategory: selectedCategory,
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  mutedColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                  gridColor: Theme.of(context).colorScheme.outlineVariant,
+                  accentColor: Theme.of(context).brightness == Brightness.dark
+                      ? neonTeal
+                      : const Color(0xFF087F73),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (hasMonthlyData) ...[
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Monthly spending trend',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(height: 4),
+          HistoryChart(
+            values: monthlyTotals!,
+            labels: monthlyLabels!,
+            height: 150,
+            compact: true,
+            title: monthlyTitle ?? 'Yearly spending',
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CategorySpiderChartPainter extends CustomPainter {
+  _CategorySpiderChartPainter({
+    required this.categories,
+    required this.values,
+    required this.colors,
+    required this.selectedCategory,
+    required this.textColor,
+    required this.mutedColor,
+    required this.gridColor,
+    required this.accentColor,
+  });
+
+  final List<String> categories;
+  final List<double> values;
+  final List<Color> colors;
+  final String? selectedCategory;
+  final Color textColor;
+  final Color mutedColor;
+  final Color gridColor;
+  final Color accentColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final count = categories.length;
+    if (count == 0) return;
+
+    final center = Offset(size.width / 2, size.height / 2 + 5);
+    final radius = math.min(size.width / 2 - 64, size.height / 2 - 50);
+    if (radius <= 0) return;
+    final maxValue = values.fold<double>(
+      0,
+      (max, value) => math.max(max, value),
+    );
+    if (maxValue <= 0) return;
+
+    Offset point(double index, double scale) {
+      final angle = -math.pi / 2 + (math.pi * 2 * index / count);
+      return center + Offset(math.cos(angle), math.sin(angle)) * radius * scale;
+    }
+
+    final gridPaint = Paint()
+      ..color = gridColor.withValues(alpha: 0.65)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (var level = 1; level <= 4; level++) {
+      final grid = Path()
+        ..moveTo(point(0, level / 4).dx, point(0, level / 4).dy);
+      for (var i = 1; i < count; i++) {
+        final next = point(i.toDouble(), level / 4);
+        grid.lineTo(next.dx, next.dy);
+      }
+      grid.close();
+      canvas.drawPath(grid, gridPaint);
+    }
+
+    final axisPaint = Paint()
+      ..color = gridColor.withValues(alpha: 0.55)
+      ..strokeWidth = 1;
+    for (var i = 0; i < count; i++) {
+      canvas.drawLine(center, point(i.toDouble(), 1), axisPaint);
+    }
+
+    final data = Path();
+    for (var i = 0; i < count; i++) {
+      final value = (values[i] / maxValue).clamp(0.0, 1.0);
+      final next = point(i.toDouble(), value);
+      if (i == 0) {
+        data.moveTo(next.dx, next.dy);
+      } else {
+        data.lineTo(next.dx, next.dy);
+      }
+    }
+    data.close();
+    canvas.drawPath(
+      data,
+      Paint()
+        ..color = accentColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      data,
+      Paint()
+        ..color = accentColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+
+    for (var i = 0; i < count; i++) {
+      final value = (values[i] / maxValue).clamp(0.0, 1.0);
+      final vertex = point(i.toDouble(), value);
+      final isSelected = selectedCategory == categories[i];
+      canvas.drawCircle(vertex, isSelected ? 6 : 4, Paint()..color = colors[i]);
+
+      final angle = -math.pi / 2 + math.pi * 2 * i / count;
+      final direction = Offset(math.cos(angle), math.sin(angle));
+      final labelPoint = center + direction * (radius + 18);
+      final textAlign = direction.dx.abs() < 0.3
+          ? TextAlign.center
+          : direction.dx > 0
+          ? TextAlign.left
+          : TextAlign.right;
+      final text = TextPainter(
+        text: TextSpan(
+          text: categories[i],
+          style: TextStyle(
+            color: isSelected ? colors[i] : textColor,
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: textAlign,
+        maxLines: 1,
+      )..layout(maxWidth: 92);
+      final labelLeft = textAlign == TextAlign.center
+          ? labelPoint.dx - text.width / 2
+          : textAlign == TextAlign.left
+          ? labelPoint.dx
+          : labelPoint.dx - text.width;
+      final offset = Offset(labelLeft, labelPoint.dy - text.height / 2);
+      text.paint(canvas, offset);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CategorySpiderChartPainter oldDelegate) =>
+      oldDelegate.categories != categories ||
+      oldDelegate.values != values ||
+      oldDelegate.selectedCategory != selectedCategory ||
+      oldDelegate.textColor != textColor ||
+      oldDelegate.mutedColor != mutedColor ||
+      oldDelegate.gridColor != gridColor ||
+      oldDelegate.accentColor != accentColor ||
+      oldDelegate.colors != colors;
+}
+
 /// TradingView-inspired interactive chart featuring smooth cubic curves,
 /// glow effects, interactive crosshairs, dynamic scrub badges, and grid lines.
 class HistoryChart extends ConsumerStatefulWidget {

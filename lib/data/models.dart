@@ -1,4 +1,5 @@
 final demoDate = DateTime(2026, 10, 30);
+const demoYear = 2026;
 
 const categories = [
   'Groceries',
@@ -185,22 +186,35 @@ class FinancialData {
         ..sort((a, b) => b.date.compareTo(a.date));
   double incomeTotal(int month) =>
       income(month).fold(0, (total, entry) => total + entry.amount);
-  List<Entry> spending(int month, {String? category}) =>
+  List<Entry> spending(int month, {String? category, int year = demoYear}) =>
       entries
           .where(
             (e) =>
                 e.date.month == month &&
-                e.date.year == 2026 &&
+                e.date.year == year &&
                 e.isSpend &&
                 (category == null || e.category == category),
           )
           .toList()
         ..sort((a, b) => b.date.compareTo(a.date));
-  double spendTotal(int month, {String? category}) =>
-      spending(month, category: category).fold(0, (s, e) => s + e.spend);
-  Map<String, double> categoryTotals(int month) => {
-    for (final c in categories) c: spendTotal(month, category: c),
+  double spendTotal(int month, {String? category, int year = demoYear}) =>
+      spending(
+        month,
+        category: category,
+        year: year,
+      ).fold(0, (s, e) => s + e.spend);
+  Map<String, double> categoryTotals(int month, {int year = demoYear}) => {
+    for (final c in categories) c: spendTotal(month, category: c, year: year),
   };
+  Map<String, double> yearCategoryTotals(int year) => {
+    for (final c in categories)
+      c: List.generate(
+        12,
+        (month) => spendTotal(month + 1, category: c, year: year),
+      ).fold<double>(0, (total, value) => total + value),
+  };
+  List<double> monthlySpendTotals(int year) =>
+      List.generate(12, (index) => spendTotal(index + 1, year: year));
   List<double> get portfolioHistory => List.generate(
     6,
     (i) => holdings.fold<double>(0, (sum, h) => sum + h.history[i]),
