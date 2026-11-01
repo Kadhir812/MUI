@@ -388,7 +388,7 @@ class OverviewPage extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.only(bottom: 8),
           child: Muted(
-            'Recent entries are sample activity, not a complete account ledger.',
+            'Recent entries are activity, not a complete account ledger.',
           ),
         ),
       ],

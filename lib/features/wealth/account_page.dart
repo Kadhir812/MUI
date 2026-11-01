@@ -35,7 +35,7 @@ class AccountPage extends ConsumerWidget {
         Amount(balance, size: 36),
         const SizedBox(height: 14),
         const Notice(
-          'Sample balance snapshot as of 30 October 2026. The transaction sample below is not a complete account ledger.',
+          'Balance snapshot as of 30 October 2026. The transactions below are not a complete account ledger.',
         ),
         if (id == 'savings') ...[
           const SectionTitle('Allocated savings'),
@@ -53,7 +53,7 @@ class AccountPage extends ConsumerWidget {
           ),
           const Muted('Goal allocation is a planning view, not a transfer.'),
         ] else ...[
-          const SectionTitle('Sample activity'),
+          const SectionTitle('Activity'),
           Panel(
             child: Column(
               children: records

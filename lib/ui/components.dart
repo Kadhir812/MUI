@@ -114,7 +114,7 @@ class PageFrame extends ConsumerWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                'SAMPLE DATA · ${shortDate(demoDate)} · No accounts connected',
+                                'FINANCIAL SNAPSHOT · ${shortDate(demoDate)} · No accounts connected',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(

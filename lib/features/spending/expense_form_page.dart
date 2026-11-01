@@ -74,7 +74,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       title: 'Add expense',
       children: [
         const Muted(
-          'Add a personal demo entry. It updates spending and activity, not the sample account balances.',
+          'Add a personal entry. It updates spending and activity, not the account balances.',
         ),
         const SizedBox(height: 18),
         Form(
@@ -199,7 +199,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
               ),
               const SizedBox(height: 16),
               const Notice(
-                'This personal entry is saved on this device. It will appear in spending and activity, but will not change sample balances or net worth.',
+                'This personal entry is saved on this device. It will appear in spending and activity, but will not change balances or net worth.',
               ),
               const SizedBox(height: 12),
               FilledButton.icon(

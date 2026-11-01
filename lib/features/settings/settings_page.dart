@@ -82,7 +82,7 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
         const Notice(
-          'Still stores sample edits and income and expense records you add on this device. Added records do not update sample balances. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
+          'Still stores edits and income and expense records you add on this device. Added records do not update balances. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
         ),
         const SizedBox(height: 20),
         const Muted(
@@ -104,7 +104,7 @@ class SettingsPage extends ConsumerWidget {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Reset sample data?'),
+                      title: const Text('Reset data?'),
                       content: const Text(
                         'Goal edits, transaction categories, and income and expense records you added are removed. Your appearance and privacy preferences stay unchanged. You can undo this reset.',
                       ),
@@ -125,7 +125,7 @@ class SettingsPage extends ConsumerWidget {
                       context,
                       s,
                       s.reset(),
-                      'Sample data restored',
+                      'Data restored',
                     );
                   }
                 },

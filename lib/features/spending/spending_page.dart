@@ -81,7 +81,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
                   selected: nextKind,
                   onSelect: (v) => update(() => nextKind = v),
                 ),
-                const Muted('All sample transactions have Completed status.'),
+                const Muted('All listed transactions have Completed status.'),
                 const SizedBox(height: 18),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, true),
@@ -172,7 +172,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         const SizedBox(height: 8),
         Muted(
           month == 8
-              ? 'August sample · 2026'
+              ? 'August · 2026'
               : '${s.amount(total - d.spendTotal(month - 1))} change vs ${monthName(month - 1)}',
         ),
         const SizedBox(height: 8),
@@ -184,7 +184,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         ],
         const SizedBox(height: 8),
         const Notice(
-          'Sample transactions only—not a complete bank history. Spending totals include listed expenses and refunds, exclude income and transfers, and do not reconcile account balances.',
+          'Listed transactions—not a complete bank history. Spending totals include listed expenses and refunds, exclude income and transfers, and do not reconcile account balances.',
         ),
         FilledButton.icon(
           key: const ValueKey('spending-add-expense'),
@@ -193,7 +193,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
           label: const Text('Add expense'),
         ),
         const Muted(
-          'Through day 30. Charts show the full sample month; filters below affect the record list. Summaries round to rupees; records show paise.',
+          'Through day 30. Charts show the full month; filters below affect the record list. Summaries round to rupees; records show paise.',
         ),
         Choices(
           items: const ['Categories', 'Weekly trend'],
