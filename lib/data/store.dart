@@ -50,7 +50,7 @@ class FinanceStore extends ChangeNotifier {
       if (raw != null) _restore(raw);
     } catch (_) {
       error =
-          'Saved demo could not be loaded. Sample data is available; reset the demo to replace the saved copy.';
+          'Saved preferences could not be loaded. Default data is available; reset to replace the saved copy.';
     }
     notifyListeners();
   }

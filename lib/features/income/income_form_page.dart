@@ -71,7 +71,7 @@ class _IncomeFormPageState extends ConsumerState<IncomeFormPage> {
       title: 'Add income',
       children: [
         const Muted(
-          'Record income for your history and cash-flow view. It will not change sample account balances or net worth.',
+          'Record income for your history and cash-flow view. It will not change account balances or net worth.',
         ),
         const SizedBox(height: 18),
         Form(
@@ -168,7 +168,7 @@ class _IncomeFormPageState extends ConsumerState<IncomeFormPage> {
               ),
               const SizedBox(height: 16),
               const Notice(
-                'This record is saved on this device and updates income totals. Sample account balances and net worth are not recalculated from these records.',
+                'This record is saved on this device and updates income totals. Account balances and net worth are not recalculated from these records.',
               ),
               const SizedBox(height: 12),
               FilledButton.icon(

@@ -104,7 +104,7 @@ class _InvestmentsPageState extends ConsumerState<InvestmentsPage> {
             ),
           ),
           const Notice(
-            'This sample portfolio has no deposits or withdrawals after 1 May. Simple return = gain ÷ invested amount. It is not an annualized return. FD interest is excluded until payout.',
+            'This portfolio has no deposits or withdrawals after 1 May. Simple return = gain ÷ invested amount. It is not an annualized return. FD interest is excluded until payout.',
           ),
         ],
         SectionTitle(
@@ -126,9 +126,7 @@ class _InvestmentsPageState extends ConsumerState<InvestmentsPage> {
                 .toList(),
           ),
         ),
-        const Muted(
-          'Illustrative prices and products · Valued 30 October 2026. These are not live market quotes.',
-        ),
+        const Muted('Prices and products · Valued 30 October 2026. '),
         const AskButton('Explain my portfolio'),
       ],
     );

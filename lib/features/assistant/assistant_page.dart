@@ -103,7 +103,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                 ),
               ),
             const Muted(
-              'Source: sample expense transactions. Income and internal transfers excluded. A change in spending is not automatically a problem.',
+              'Source: listed expense transactions. Income and internal transfers excluded. A change in spending is not automatically a problem.',
             ),
             TextButton(
               onPressed: () => context.push('/spending'),
@@ -125,7 +125,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
             ),
             const SizedBox(height: 12),
             const Muted(
-              'Source: five sample holdings, valued 30 October. No contributions or withdrawals after 1 May. FD interest is projected separately. This explains the sample; it does not recommend a trade.',
+              'Source: five holdings, valued 30 October. No contributions or withdrawals after 1 May. FD interest is projected separately. This explains the portfolio; it does not recommend a trade.',
             ),
             TextButton(
               onPressed: () => context.push('/investments'),
@@ -160,11 +160,11 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
             Text(
               s.hidden
                   ? 'Credit details hidden.'
-                  : 'Your illustrative score is 782. The sample shows 12 on-time payments and 24.25% utilization.',
+                  : 'Your score is 782. The account view shows 12 on-time payments and 24.25% utilization.',
             ),
             const SizedBox(height: 12),
             const Muted(
-              'No credit bureau is connected. These factors describe sample data and do not predict a real score change.',
+              'No credit bureau is connected. These factors describe the current account view.',
             ),
             TextButton(
               onPressed: () => context.push('/credit'),
@@ -261,7 +261,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'This offline demo can explain spending, wealth, investments and credit, or propose a goal plan. It cannot connect accounts or move money.',
+              'This assistant can explain spending, wealth, investments and credit, or propose a goal plan. It cannot connect accounts or move money.',
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -352,7 +352,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                     padding: const EdgeInsets.all(22),
                     children: [
                       const Notice(
-                        'Sample data · 30 Oct 2026 · No accounts connected. Changes require your review.',
+                        'Financial snapshot · 30 Oct 2026 · No accounts connected. Changes require your review.',
                       ),
                       const SizedBox(height: 20),
                       if (s.error != null) Notice(s.error!, warning: true),

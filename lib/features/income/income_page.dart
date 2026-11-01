@@ -56,7 +56,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
         ),
         const SizedBox(height: 12),
         const Notice(
-          'Includes illustrative sample records and any income you add. Added income updates this history and cash-flow summaries, but does not change sample account balances or net worth.',
+          'Includes recorded income and any income you add. Added income updates this history and cash-flow summaries, but does not change account balances or net worth.',
         ),
         const SectionTitle('Income records'),
         if (records.isEmpty)
@@ -91,7 +91,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                     entry.merchant,
                     store.amount(entry.amount, decimals: true),
                     subtitle:
-                        '${entry.isManual ? 'Added by you · ' : 'Sample · '}${shortDate(entry.date)} · ${entry.account}',
+                        '${entry.isManual ? 'Added by you · ' : 'Recorded · '}${shortDate(entry.date)} · ${entry.account}',
                     onTap: () => context.push('/transactions/${entry.id}'),
                   ),
               ],

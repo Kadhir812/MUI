@@ -61,7 +61,7 @@ class HoldingPage extends ConsumerWidget {
                   s.amount(h.cost, decimals: true),
                 ),
                 DataRowTile(
-                  h.type == 'Stocks' ? 'Sample market price' : 'Sample NAV',
+                  h.type == 'Stocks' ? 'Market price' : 'NAV',
                   s.amount(h.price, decimals: true),
                 ),
                 DataRowTile('Unrealized gain', s.amount(h.gain)),
@@ -83,7 +83,7 @@ class HoldingPage extends ConsumerWidget {
         ),
         if (fd)
           const Notice(
-            'Projection uses simple interest: principal × 7% × 1 year. Illustrative gross payout, before tax. No accrued interest is added to net worth.',
+            'Projection uses simple interest: principal × 7% × 1 year. Gross payout before tax. No accrued interest is added to net worth.',
           ),
         const SectionTitle('Investment activity'),
         Panel(
@@ -95,7 +95,7 @@ class HoldingPage extends ConsumerWidget {
           ),
         ),
         const Muted(
-          'Complete activity for this sample holding. No subsequent purchases, sales or withdrawals.',
+          'Complete activity for this holding. No subsequent purchases, sales or withdrawals.',
         ),
         const AskButton('Explain my portfolio'),
       ],

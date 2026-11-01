@@ -68,8 +68,7 @@ class WealthPage extends ConsumerWidget {
               DataRowTile(
                 'Investments',
                 s.amount(d.investmentValue),
-                subtitle:
-                    '${d.holdings.length} holdings · current sample values',
+                subtitle: '${d.holdings.length} holdings · current values',
                 onTap: () => context.push('/investments'),
               ),
               const Divider(),
@@ -107,7 +106,7 @@ class WealthPage extends ConsumerWidget {
           ),
         ),
         const Notice(
-          'Sample balances are month-end snapshots; recent transactions do not calculate them. Goal savings are already included in the savings account. Fixed deposits are valued at principal.',
+          'Balances are month-end snapshots; recent transactions do not calculate them. Goal savings are already included in the savings account. Fixed deposits are valued at principal.',
         ),
         const AskButton('Explain these numbers'),
       ],

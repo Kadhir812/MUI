@@ -74,7 +74,7 @@ void main() {
     expect(find.text('still.'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-add-expense')), findsNothing);
     expect(
-      find.text('SAMPLE DATA · 30 Oct 2026 · No accounts connected'),
+      find.text('FINANCIAL SNAPSHOT · 30 Oct 2026 · No accounts connected'),
       findsOneWidget,
     );
     expect(find.text('OCTOBER 2026'), findsOneWidget);
@@ -480,7 +480,7 @@ void main() {
     await tester.ensureVisible(find.text('Credit health'));
     await tester.tap(find.text('Credit health'));
     await tester.pumpAndSettle();
-    expect(find.text('ILLUSTRATIVE CREDIT SCORE'), findsOneWidget);
+    expect(find.text('CREDIT SCORE'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);

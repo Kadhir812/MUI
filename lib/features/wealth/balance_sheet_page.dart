@@ -77,7 +77,7 @@ class BalanceSheetPage extends ConsumerWidget {
           ),
         ),
         const Notice(
-          'Illustrative snapshot dated 30 October 2026. Transactions do not reconcile these sample balances.',
+          'Snapshot dated 30 October 2026. Transactions do not reconcile these balances.',
         ),
       ],
     );
