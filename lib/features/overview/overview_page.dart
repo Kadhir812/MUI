@@ -325,6 +325,16 @@ class OverviewPage extends ConsumerWidget {
             ],
           ),
         ),
+        _GuidedStoryCard(
+          hidden: store.hidden,
+          netWorthChange: netWorthChange,
+          income: income,
+          spending: spending,
+          leadingCategoryChange: leadingCategoryChange,
+          onPrimaryAction: () => context.push(
+            '/spending?category=${Uri.encodeComponent(leadingCategoryChange.key)}',
+          ),
+        ),
         Panel(
           padding: 8,
           child: Column(
@@ -441,8 +451,214 @@ class OverviewPage extends ConsumerWidget {
         ),
         const Padding(
           padding: EdgeInsets.only(bottom: 8),
-          child: Muted(
-            'Recent entries are activity, not a complete account ledger.',
+          child: Muted('Recent activity · tap any item for details.'),
+        ),
+      ],
+    );
+  }
+}
+
+class _GuidedStoryCard extends StatelessWidget {
+  const _GuidedStoryCard({
+    required this.hidden,
+    required this.netWorthChange,
+    required this.income,
+    required this.spending,
+    required this.leadingCategoryChange,
+    required this.onPrimaryAction,
+  });
+
+  final bool hidden;
+  final double netWorthChange;
+  final double income;
+  final double spending;
+  final MapEntry<String, double> leadingCategoryChange;
+  final VoidCallback onPrimaryAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final cashflowPositive = income >= spending;
+    final attentionNeeded = !hidden && leadingCategoryChange.value.abs() > 0;
+    final headline = hidden
+        ? 'Your financial story is private'
+        : netWorthChange >= 0
+        ? 'Your wealth is moving forward'
+        : 'Your wealth needs a closer look';
+    final detail = hidden
+        ? 'Show balances when you are ready to review this month.'
+        : cashflowPositive
+        ? 'Income is ahead of spending. Keep the momentum going.'
+        : 'Spending is ahead of income. A quick review can bring clarity.';
+    final actionLabel = hidden
+        ? 'Review privately'
+        : attentionNeeded
+        ? 'Review ${leadingCategoryChange.key}'
+        : 'Review this month';
+
+    return Panel(
+      padding: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 18,
+                  color: scheme.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'YOUR MONEY STORY',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.1,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_rounded,
+                size: 17,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.65),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.08),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: Column(
+              key: ValueKey('$headline-$detail'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  headline,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: scheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  detail,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    height: 1.45,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _StoryStep(label: 'See', active: true, color: scheme.primary),
+              Expanded(
+                child: Container(
+                  height: 2,
+                  color: scheme.secondary.withValues(alpha: 0.45),
+                ),
+              ),
+              _StoryStep(
+                label: 'Understand',
+                active: attentionNeeded,
+                color: scheme.secondary,
+              ),
+              Expanded(
+                child: Container(
+                  height: 2,
+                  color: attentionNeeded
+                      ? scheme.secondary.withValues(alpha: 0.45)
+                      : scheme.outlineVariant,
+                ),
+              ),
+              _StoryStep(label: 'Act', active: false, color: paletteCoral),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: onPrimaryAction,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: Text(actionLabel),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoryStep extends StatelessWidget {
+  const _StoryStep({
+    required this.label,
+    required this.active,
+    required this.color,
+  });
+
+  final String label;
+  final bool active;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: active ? color : scheme.surface,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: active ? color : scheme.outlineVariant,
+              width: 2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            color: active ? scheme.onSurface : scheme.onSurfaceVariant,
           ),
         ),
       ],

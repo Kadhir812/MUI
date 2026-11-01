@@ -116,7 +116,9 @@ void main() {
       scrollable: homeScroll,
     );
     expect(find.text('Credit health'), findsOneWidget);
-    await tester.ensureVisible(find.text('View wealth details  →'));
+    await tester.ensureVisible(
+      find.text('View wealth details  →', skipOffstage: false),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('View wealth details  →'));
     await tester.pumpAndSettle();
@@ -624,11 +626,13 @@ void main() {
     await tester.tap(find.text('Groceries'));
     await tester.pumpAndSettle();
     expect(find.text('Spending & activity'), findsOneWidget);
-    expect(find.textContaining('not a complete bank history'), findsOneWidget);
     expect(
-      find.textContaining('do not reconcile account balances'),
+      find.text(
+        'Spending only · refunds included · transfers excluded.',
+      ),
       findsOneWidget,
     );
+    expect(find.text('Groceries · +₹310 vs August'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets('overview handles a narrow viewport', (tester) async {

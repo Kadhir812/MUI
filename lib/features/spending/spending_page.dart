@@ -133,6 +133,10 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         d.categoryTotals(month).entries.where((e) => e.value > 0).toList()
           ..sort((a, b) => b.value.compareTo(a.value));
     final total = d.spendTotal(month);
+    final selectedChange = category == null
+        ? null
+        : d.spendTotal(month, category: category) -
+              d.spendTotal(month - 1, category: category);
     final manualCount = d.entries
         .where(
           (entry) =>
@@ -167,33 +171,51 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
             () => month = ['August', 'September', 'October'].indexOf(v) + 8,
           ),
         ),
-        const Muted('TOTAL MONTH SPENDING'),
-        Amount(total, size: 36),
-        const SizedBox(height: 8),
-        Muted(
-          month == 8
-              ? 'August · 2026'
-              : '${s.amount(total - d.spendTotal(month - 1))} change vs ${monthName(month - 1)}',
-        ),
-        const SizedBox(height: 8),
-        if (manualCount > 0) ...[
-          const SizedBox(height: 6),
-          Muted(
-            '$manualCount expense${manualCount == 1 ? '' : 's'} added by you',
+        Panel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Muted('TOTAL MONTH SPENDING'),
+              const SizedBox(height: 4),
+              Amount(total, size: 36),
+              const SizedBox(height: 8),
+              Muted(
+                month == 8
+                    ? 'August · 2026'
+                    : '${s.amount(total - d.spendTotal(month - 1))} change vs ${monthName(month - 1)}',
+              ),
+              if (category != null) ...[
+                const SizedBox(height: 14),
+                Notice(
+                  '$category · '
+                  '${selectedChange == null || selectedChange == 0 ? 'unchanged' : '${selectedChange > 0 ? '+' : '-'}${s.amount(selectedChange.abs())}'} '
+                  'vs ${monthName(month - 1)}',
+                ),
+              ],
+              if (manualCount > 0) ...[
+                const SizedBox(height: 10),
+                Muted(
+                  '$manualCount expense${manualCount == 1 ? '' : 's'} added by you',
+                ),
+              ],
+            ],
           ),
-        ],
-        const SizedBox(height: 8),
-        const Notice(
-          'Listed transactions—not a complete bank history. Spending totals include listed expenses and refunds, exclude income and transfers, and do not reconcile account balances.',
         ),
-        FilledButton.icon(
-          key: const ValueKey('spending-add-expense'),
-          onPressed: () => context.push('/expenses/new'),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Add expense'),
+        const Muted('ACTIVITY SHOWN'),
+        const SizedBox(height: 4),
+        const Muted('Spending only · refunds included · transfers excluded.'),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            key: const ValueKey('spending-add-expense'),
+            onPressed: () => context.push('/expenses/new'),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add expense'),
+          ),
         ),
         const Muted(
-          'Through day 30. Charts show the full month; filters below affect the record list. Summaries round to rupees; records show paise.',
+          'October through day 30 · filters apply to the list below.',
         ),
         Choices(
           items: const ['Categories', 'Weekly trend'],
@@ -275,7 +297,7 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         ),
         const SizedBox(height: 8),
         Muted(
-          '${filtered.length} records · ${s.amount(filtered.fold<double>(0, (v, e) => v + e.spend))} net spending in results',
+          '${filtered.length} records · ${s.amount(filtered.fold<double>(0, (v, e) => v + e.spend))} net',
         ),
         const SizedBox(height: 12),
         if (filtered.isEmpty)
