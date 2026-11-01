@@ -68,6 +68,7 @@ class OverviewPage extends ConsumerWidget {
       bottomBar: _HomeAskBox(
         onSubmit: (prompt) => context.push(assistant.destination(prompt, data)),
       ),
+      contentBottomPadding: 16,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 8),

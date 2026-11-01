@@ -15,6 +15,7 @@ class PageFrame extends ConsumerWidget {
     this.actions,
     this.home = false,
     this.bottomBar,
+    this.contentBottomPadding,
   });
 
   final String title;
@@ -22,6 +23,7 @@ class PageFrame extends ConsumerWidget {
   final List<Widget>? actions;
   final bool home;
   final Widget? bottomBar;
+  final double? contentBottomPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +95,8 @@ class PageFrame extends ConsumerWidget {
                     20,
                     8,
                     20,
-                    bottomBar == null ? 48 : bottomBarHeight + 58,
+                    contentBottomPadding ??
+                        (bottomBar == null ? 48 : bottomBarHeight + 58),
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
