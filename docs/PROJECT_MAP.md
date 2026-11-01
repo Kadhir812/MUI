@@ -21,20 +21,24 @@
 | --- | --- |
 | `overview/overview_page.dart` | Menuless home, hero and contextual overview |
 | `wealth/wealth_page.dart` | Net worth history and calculation |
+| `wealth/balance_sheet_page.dart` | Focused itemized asset or liability list |
 | `wealth/account_page.dart` | Account balance and sample activity |
 | `investments/investments_page.dart` | Allocation, performance and holdings list |
 | `investments/holding_page.dart` | Stock, mutual fund or FD record |
 | `spending/spending_page.dart` | Spending analysis, filtered transaction list |
 | `spending/transaction_page.dart` | Exact transaction and direct category editing |
+| `income/income_page.dart` | Monthly recorded-income summary and income history |
+| `income/income_form_page.dart` | Validated add-income form |
 | `goals/goals_page.dart` | All savings goals |
 | `goals/goal_detail_page.dart` | Goal progress, projection and contributions |
 | `goals/goal_editor_page.dart` | Validated create/edit form with review |
 | `credit/credit_page.dart` | Credit scale, factors and history |
 | `search/search_page.dart` | Direct navigation and record search |
-| `assistant/assistant_service.dart` | Deterministic intent routing and stale-goal proposal guard |
+| `assistant/assistant_service.dart` | Deterministic homepage destinations, assistant intents and stale-goal proposal guard |
 | `assistant/assistant_page.dart` | Conversation, evidence and reviewed goal proposals |
 | `assistant/transaction_proposal_card.dart` | Explicit category proposal and review |
 | `settings/settings_page.dart` | Appearance, privacy, undo and reset |
+| `settings/connection_request_page.dart` | UI-only mutual-fund, stock/demat and FD detail previews |
 
 ## Routes
 
@@ -42,11 +46,14 @@
 | --- | --- |
 | `/` | Overview |
 | `/wealth` | Wealth |
+| `/balance-sheet/assets`, `/balance-sheet/liabilities` | Asset or liability detail list |
 | `/accounts/everyday`, `/accounts/savings`, `/accounts/credit` | Account |
 | `/investments?type=Mutual%20funds` | Optional selected allocation |
 | `/holdings/h1` … `/holdings/h5` | Holding |
 | `/spending?month=9&category=Groceries` | Filtered spending |
 | `/transactions/:id` | Transaction |
+| `/income` | Monthly income history |
+| `/income/new` | Add income |
 | `/goals` | Goals |
 | `/goals/:id` | Goal detail |
 | `/goals/new/edit`, `/goals/:id/edit` | Create/edit goal |
@@ -54,6 +61,7 @@
 | `/search` | Search |
 | `/assistant?q=...` | Optional contextual question |
 | `/settings` | Preferences |
+| `/connections/mutual-funds`, `/connections/stocks`, `/connections/fixed-deposits` | UI-only detail/document previews; no provider connection |
 
 ## Native files
 

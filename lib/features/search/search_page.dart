@@ -35,6 +35,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         'expenses payments merchant categories history',
         '/spending',
       ),
+      ('Income', 'salary earnings income records cash flow', '/income'),
       ('Savings goals', 'goals emergency japan saving', '/goals'),
       ('Credit health', 'credit score utilization', '/credit'),
     ];

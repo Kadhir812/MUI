@@ -123,7 +123,9 @@ class TransactionPage extends ConsumerWidget {
         const SizedBox(height: 20),
         Muted(
           e.isManual
-              ? 'Expense added by you. It updates spending totals but does not change sample account balances or net worth.'
+              ? e.kind == 'income'
+                    ? 'Income added by you. It updates recorded income totals but does not change sample account balances or net worth.'
+                    : 'Expense added by you. It updates spending totals but does not change sample account balances or net worth.'
               : 'Sample transaction. Category changes update spending totals and assistant explanations immediately.',
         ),
       ],

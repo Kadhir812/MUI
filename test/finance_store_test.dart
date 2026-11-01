@@ -42,6 +42,56 @@ void main() {
     expect(store.error, isNotNull);
     expect(store.busy, isFalse);
   });
+  test(
+    'income records persist and affect income totals, not sample balances',
+    () async {
+      final repository = MemoryRepository();
+      final store = FinanceStore(repository);
+      final startingIncome = store.data.incomeTotal(10);
+      final startingSpending = store.data.spendTotal(10);
+      final startingNetWorth = store.data.netWorth;
+
+      expect(
+        await store.addIncome(
+          source: 'Freelance work',
+          amount: 12500.50,
+          date: DateTime(2026, 10, 30),
+          account: 'Savings account',
+          note: 'Design project',
+        ),
+        isTrue,
+      );
+      expect(store.data.incomeTotal(10), startingIncome + 12500.50);
+      expect(store.data.spendTotal(10), startingSpending);
+      expect(store.data.netWorth, startingNetWorth);
+
+      final restored = FinanceStore(repository);
+      await restored.load();
+      final income = restored.data
+          .income(10)
+          .firstWhere((entry) => entry.isManual);
+      expect(income.merchant, 'Freelance work');
+      expect(income.amount, 12500.50);
+      expect(income.account, 'Savings account');
+      expect(income.note, 'Design project');
+    },
+  );
+  test('invalid income is rejected without changing totals', () async {
+    final store = FinanceStore(MemoryRepository());
+    final total = store.data.incomeTotal(10);
+
+    expect(
+      await store.addIncome(
+        source: ' ',
+        amount: -1,
+        date: DateTime(2026, 10, 30),
+        account: 'Everyday account',
+      ),
+      isFalse,
+    );
+    expect(store.data.incomeTotal(10), total);
+    expect(store.error, isNotNull);
+  });
   test('undo preserves appearance and privacy preferences', () async {
     final store = FinanceStore(MemoryRepository());
     final goal = store.data.goals.first;

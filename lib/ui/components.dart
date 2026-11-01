@@ -14,16 +14,21 @@ class PageFrame extends ConsumerWidget {
     required this.children,
     this.actions,
     this.home = false,
+    this.bottomBar,
   });
 
   final String title;
   final List<Widget> children;
   final List<Widget>? actions;
   final bool home;
+  final Widget? bottomBar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final store = ref.watch(storeProvider);
+    final bottomBarHeight = MediaQuery.sizeOf(context).width < 400
+        ? 96.0
+        : 90.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,6 +63,21 @@ class PageFrame extends ConsumerWidget {
               const SizedBox(width: 6),
             ],
       ),
+      bottomNavigationBar: bottomBar == null
+          ? null
+          : SizedBox(
+              height: bottomBarHeight,
+              child: SafeArea(
+                top: false,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: bottomBar,
+                  ),
+                ),
+              ),
+            ),
       body: SafeArea(
         top: false,
         child: Align(
@@ -69,7 +89,12 @@ class PageFrame extends ConsumerWidget {
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 48),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    8,
+                    20,
+                    bottomBar == null ? 48 : bottomBarHeight + 58,
+                  ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       Padding(
@@ -195,13 +220,15 @@ class _PanelState extends State<Panel> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-              color: Theme.of(context).shadowColor.withValues(
-                alpha: isDark ? (_pressed ? 0.16 : 0.22) : (_pressed ? 0.08 : 0.12),
+                color: Theme.of(context).shadowColor.withValues(
+                  alpha: isDark
+                      ? (_pressed ? 0.16 : 0.22)
+                      : (_pressed ? 0.08 : 0.12),
+                ),
+                blurRadius: _pressed ? 14 : 24,
+                spreadRadius: _pressed ? -5 : -3,
+                offset: Offset(0, _pressed ? 3 : 8),
               ),
-              blurRadius: _pressed ? 14 : 24,
-              spreadRadius: _pressed ? -5 : -3,
-              offset: Offset(0, _pressed ? 3 : 8),
-            ),
             ],
           ),
           child: Material(

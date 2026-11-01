@@ -88,14 +88,24 @@ class FinanceStore extends ChangeNotifier {
           entry.id.isEmpty ||
           entry.merchant.trim().isEmpty ||
           entry.merchant.length > 80 ||
-          entry.kind != 'expense' ||
+          !const ['expense', 'income'].contains(entry.kind) ||
           !entry.amount.isFinite ||
           entry.amount <= 0 ||
           entry.amount > 1000000000 ||
           entry.date.isAfter(demoDate) ||
-          !categories.contains(entry.category) ||
-          !const ['Everyday account', 'Credit card'].contains(entry.account) ||
-          entry.note.length > 200,
+          entry.note.length > 200 ||
+          entry.kind == 'expense' &&
+              (!categories.contains(entry.category) ||
+                  !const [
+                    'Everyday account',
+                    'Credit card',
+                  ].contains(entry.account)) ||
+          entry.kind == 'income' &&
+              (entry.category != 'Income' ||
+                  !const [
+                    'Everyday account',
+                    'Savings account',
+                  ].contains(entry.account)),
     )) {
       throw const FormatException('Invalid manual transaction');
     }
@@ -109,14 +119,15 @@ class FinanceStore extends ChangeNotifier {
       throw const FormatException('Invalid goal');
     }
     data = FinancialData(
-      entries: fresh.entries
-          .map(
-            (e) => overrides.containsKey(e.id)
-                ? e.withCategory(overrides[e.id])
-                : e,
-          )
-          .toList()
-        ..addAll(manualEntries),
+      entries:
+          fresh.entries
+              .map(
+                (e) => overrides.containsKey(e.id)
+                    ? e.withCategory(overrides[e.id])
+                    : e,
+              )
+              .toList()
+            ..addAll(manualEntries),
       holdings: fresh.holdings,
       goals: goals,
     );
@@ -205,6 +216,52 @@ class FinanceStore extends ChangeNotifier {
       );
     });
   }
+
+  Future<bool> addIncome({
+    required String source,
+    required double amount,
+    required DateTime date,
+    required String account,
+    String note = '',
+  }) {
+    final normalizedSource = source.trim();
+    if (normalizedSource.isEmpty ||
+        normalizedSource.length > 80 ||
+        !amount.isFinite ||
+        amount <= 0 ||
+        amount > 1000000000 ||
+        date.isAfter(demoDate) ||
+        !const ['Everyday account', 'Savings account'].contains(account) ||
+        note.length > 200) {
+      error = 'Check the income details and try again.';
+      notifyListeners();
+      return Future.value(false);
+    }
+
+    final baseId = 'income-${DateTime.now().microsecondsSinceEpoch}';
+    var id = baseId;
+    var suffix = 1;
+    while (data.entries.any((entry) => entry.id == id)) {
+      id = '$baseId-$suffix';
+      suffix++;
+    }
+    return _commit(() {
+      data.entries.add(
+        Entry(
+          id: id,
+          merchant: normalizedSource,
+          amount: amount,
+          date: date,
+          category: 'Income',
+          account: account,
+          kind: 'income',
+          note: note.trim(),
+          isManual: true,
+        ),
+      );
+    });
+  }
+
   Future<bool> saveGoal(Goal goal) => _commit(() {
     if (goal.name.trim().isEmpty ||
         goal.target <= 0 ||

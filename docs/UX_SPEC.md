@@ -6,7 +6,7 @@
 2. Hub-and-spoke: overview → detail → record, with visible Back.
 3. Progressive disclosure: overview is concise; exact details remain available.
 4. Stable vertical feed: section order does not change in response to insights.
-5. Search/command navigation: sections, entities and supported date/category intent.
+5. Search/command navigation: a homepage prompt routes common finance keywords; exact search remains available.
 6. Conversational assistance: explanations reference the same underlying records.
 7. Agentic interaction: explicit proposal → review → apply → result → undo.
 8. Contextual assistance: one home insight and relevant Ask actions.
@@ -16,7 +16,15 @@ No persistent bottom tabs, hamburger, sidebar, shortcut grid, hidden-only gestur
 
 ## Visual hierarchy
 
-Home shows one dominant wealth chart. Spending is a figure and comparison; investments add a restrained allocation strip; the priority goal has a progress bar; credit is a compact row. Deeper pages give one analytical question prominence. Allocation/performance and category/weekly-trend controls avoid simultaneous competing charts.
+Home is a compact, tappable financial snapshot: net worth and its trend, a clear “assets − liabilities = net worth” explanation with tappable asset/liability totals, this-month income and spending, and an explicit budget status appear first. Asset and liability totals open focused itemized lists. One- or two-line, data-backed captions connect wealth and cash-flow totals; financial values are hidden with privacy mode. The current demo has no saved monthly budget, so the summary says there is no monthly limit to compare against rather than inventing a budget status. Investments, savings goals, and credit health are concise rows that open their complete detail pages. One short spending insight, recent activity, and the money assistant follow; long numbered story sections stay off the home screen.
+
+Income and spending figures are separate tap targets. Income opens a monthly income history with a clearly labelled Add income action; spending opens spending analysis with an Add expense action in page content. Manually entered income updates recorded income and cash-flow summaries only. Because account snapshots are fixed illustrative data rather than a reconciled ledger, the UI explicitly says that added records do not change balances or net worth.
+
+Deeper pages give one analytical question prominence. Allocation/performance and category/weekly-trend controls avoid simultaneous competing charts. Home summaries navigate to full analyses and records, preserving progressive disclosure without a drawer or persistent navigation menu.
+
+The home header uses a settings gear rather than a filter-style control. Income and expense creation stays in each page's content, not the header. Settings includes UI-only connection previews for mutual funds, stocks/demat, and fixed deposits. They show typical identifiers and documents to prepare, but do not connect to providers, upload documents, or transmit/store entered values; the preview explicitly tells users not to enter real financial identifiers.
+
+The homepage “Ask Still” composer is the single conversational entry point and sits at the bottom of the feed. Direct commands such as “open income” or “show my investments” use local keyword routing to open matching destinations. Data and explanation questions such as “what is my income?” or “explain my assets” open the existing “A little clarity” page with the question ready. The header Search control remains available for exact holdings, goals, transactions, and date/category search. Routing is deterministic demo logic behind `DemoAssistantService`, so it can later be replaced by an AI-backed intent service without changing the homepage interaction; no AI request is currently made.
 
 Full pages are used for analysis and records. Sheets handle short selections and proposal review. All important actions have a text label or accessible tooltip.
 
@@ -56,7 +64,7 @@ Native platform page transitions; Cupertino page transitions on iOS. Reduced-mot
 - A versioned preference snapshot is used for this small mock demo instead of Drift/SQLite. Production ledger persistence is explicitly out of scope.
 - Credit history uses exact-value rows, not another decorative chart.
 - Search has an explicit supported grocery/month intent, not a general natural-language query engine.
-- Assistant intent matching is deterministic and bounded. It is not an LLM or autonomous financial service.
+- Homepage command routing and assistant intent matching are deterministic and bounded. They are not an LLM or autonomous financial service.
 - Transaction category proposals require the user to choose a category; the app does not guess silently.
 - Goal contribution history is viewable. This phase edits contribution plans, not actual deposits or saved balances.
 - Sample account activity is clearly labelled incomplete relative to account balance snapshots.

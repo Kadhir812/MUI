@@ -153,12 +153,6 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
       title: 'Spending & activity',
       actions: [
         IconButton(
-          key: const ValueKey('spending-add-expense'),
-          tooltip: 'Add expense',
-          onPressed: () => context.push('/expenses/new'),
-          icon: const Icon(Icons.add_rounded),
-        ),
-        IconButton(
           tooltip: 'Search your finances',
           onPressed: () => context.push('/search'),
           icon: const Icon(Icons.search_rounded),
@@ -191,6 +185,12 @@ class _SpendingPageState extends ConsumerState<SpendingPage> {
         const SizedBox(height: 8),
         const Notice(
           'Sample transactions only—not a complete bank history. Spending totals include listed expenses and refunds, exclude income and transfers, and do not reconcile account balances.',
+        ),
+        FilledButton.icon(
+          key: const ValueKey('spending-add-expense'),
+          onPressed: () => context.push('/expenses/new'),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add expense'),
         ),
         const Muted(
           'Through day 30. Charts show the full sample month; filters below affect the record list. Summaries round to rupees; records show paise.',

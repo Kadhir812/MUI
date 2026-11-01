@@ -2,27 +2,19 @@
 
 ## Completed in the authoring environment
 
-- All application, test and integration-test Dart files parsed and were formatted by the standalone Dart formatter (Dart 3.9 SDK obtained from Flutter 3.35.7 source setup).
-- Dependency-free financial/intent checks executed successfully. The exact output is in `domain-check-results.txt`.
-- Local relative Dart imports resolve to bundled files.
-- Native XML/plist/JSON files parse.
-- Generated native source has no unresolved template placeholders.
-- Python bootstrap script passes syntax compilation.
-- Archive file manifest and ZIP integrity checked before delivery.
+- `flutter test` passes, including income persistence, separate home income/spending navigation, privacy, expense, and category drill-down checks.
+- Targeted `flutter analyze` for the income and home implementation passes without issues.
+- Full-project analysis runs and reports three existing info-level notices: one asynchronous BuildContext notice in the assistant proposal card and two `print` notices in the domain-check script.
+- The app launched in Chrome during development; this is not a native-device acceptance test.
 
 ## Not completed
 
-- `flutter pub get` for this application / dependency lock generation.
-- Full `flutter analyze` with resolved Flutter and third-party package types.
-- `flutter test` and `integration_test` execution.
+- `integration_test` execution.
 - Android APK build or emulator/device run.
 - iOS simulator/device build, signing or run.
-- Web compilation and browser visual inspection.
 - Screenshots, golden comparisons, screen-reader QA, frame timing and large-text visual QA.
 
-The formatter warned that flutter_lints could not be resolved because application dependencies were not installed. Successful parsing is not evidence of successful Flutter compilation.
-
-**Reason:** Automatic approval review rejected the Flutter SDK setup execution because it attempted to contact the cloud instance metadata endpoint. Such access can expose credentials/environment metadata. The blocked setup was not retried through alternate settings or commands. Standalone local Dart formatting and dependency-free domain execution were safe unaffected checks.
+Passing widget tests is not a substitute for native builds or accessibility/device acceptance.
 
 ## Local verification sequence
 
@@ -43,8 +35,9 @@ The formatter warned that flutter_lints could not be resolved because applicatio
 - Native back gesture/system Back and restored filters/scroll.
 - Goal proposal cannot apply without review; stale proposal cannot overwrite a changed goal.
 - Category edit updates totals and undo restores them.
-- Relaunch retains preferences, goal edits and categories.
+- Relaunch retains preferences, goal edits, categories, and manually added income/expense records.
 - Privacy conceals values across all screens and charts.
+- Manually added income updates income and cash-flow summaries without implying that illustrative balances or net worth have been reconciled.
 - Reduced-motion behaviour of page transitions and platform sheets.
 - No overflow, clipped monetary values, blocked taps or dropped frames in common journeys.
 

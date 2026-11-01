@@ -6,15 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/overview/overview_page.dart';
 import '../features/wealth/wealth_page.dart';
+import '../features/wealth/balance_sheet_page.dart';
 import '../features/investments/investments_page.dart';
 import '../features/spending/spending_page.dart';
 import '../features/spending/transaction_page.dart';
 import '../features/spending/expense_form_page.dart';
+import '../features/income/income_page.dart';
+import '../features/income/income_form_page.dart';
 import '../features/goals/goals_page.dart';
 import '../features/credit/credit_page.dart';
 import '../features/assistant/assistant_page.dart';
 import '../features/search/search_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/settings/connection_request_page.dart';
 import '../ui/components.dart';
 
 Page<void> platformPage(
@@ -61,6 +65,14 @@ GoRouter makeRouter() => GoRouter(
       pageBuilder: (c, s) => platformPage(c, s, const WealthPage()),
     ),
     GoRoute(
+      path: '/balance-sheet/:section',
+      pageBuilder: (c, s) => platformPage(
+        c,
+        s,
+        BalanceSheetPage(section: s.pathParameters['section']!),
+      ),
+    ),
+    GoRoute(
       path: '/accounts/:id',
       pageBuilder: (c, s) =>
           platformPage(c, s, AccountPage(id: s.pathParameters['id']!)),
@@ -92,6 +104,24 @@ GoRouter makeRouter() => GoRouter(
               10,
         ),
       ),
+    ),
+    GoRoute(
+      path: '/income',
+      pageBuilder: (c, s) => platformPage(
+        c,
+        s,
+        IncomePage(
+          initialMonth:
+              int.tryParse(
+                s.uri.queryParameters['month'] ?? '',
+              )?.clamp(8, 10).toInt() ??
+              10,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/income/new',
+      pageBuilder: (c, s) => platformPage(c, s, const IncomeFormPage()),
     ),
     GoRoute(
       path: '/expenses/new',
@@ -135,6 +165,14 @@ GoRouter makeRouter() => GoRouter(
     GoRoute(
       path: '/settings',
       pageBuilder: (c, s) => platformPage(c, s, const SettingsPage()),
+    ),
+    GoRoute(
+      path: '/connections/:type',
+      pageBuilder: (c, s) => platformPage(
+        c,
+        s,
+        ConnectionRequestPage(type: s.pathParameters['type']!),
+      ),
     ),
   ],
   errorBuilder: (c, s) => const PageFrame(

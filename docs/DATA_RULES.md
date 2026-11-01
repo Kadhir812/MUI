@@ -31,6 +31,10 @@ The FD is ₹2,00,000 at 7% simple interest for one year, maturing 1 May 2027 at
 
 Expense amounts contribute positively; refunds contribute negatively. Income and internal transfers are excluded. August–October records are available. Comparisons are through day 30 for both periods. A category change moves the same record between totals without changing overall expense value.
 
+## Income
+
+Income totals sum income records for each month. Seeded salary entries are illustrative; manually added income is stored locally with its source, amount, date, account and optional note. Manual income updates income history and cash-flow summaries only. It does not update the fixed sample account snapshots, investment values, goals or net worth. Account-balance reconciliation is not implemented.
+
 Charts use the full selected month's spending. Account, activity, category and text filters apply to the transaction list, and that distinction is labelled. Net spending in mixed activity results excludes income/transfers. All seeded records are Completed; the UI states this instead of presenting a meaningless status filter.
 
 Sample account balance snapshots are not presented as a balance computed from the incomplete account activity list.
@@ -49,6 +53,6 @@ New goals start with zero saved. Editing cannot change saved balances or transfe
 
 ## Storage and undo
 
-Only local demo preferences, goals and category overrides are persisted. Financial constants are seeded, and derived totals are never saved separately. One last data change can be undone during the session; changing appearance/privacy does not overwrite that undo. Undo preserves current privacy/appearance settings. Write failure restores the previous in-memory snapshot and exposes an error.
+Local demo preferences, goals, category overrides, and manually added income/expense records are persisted. Financial constants are seeded, and derived totals are never saved separately. One last data change can be undone during the session; changing appearance/privacy does not overwrite that undo. Undo preserves current privacy/appearance settings. Write failure restores the previous in-memory snapshot and exposes an error.
 
 This preference-backed snapshot is not suitable for real financial ledger data. The repository boundary is the migration point for a database.

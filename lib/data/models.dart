@@ -173,6 +173,18 @@ class FinancialData {
   double get assets => everyday + savings + investmentValue;
   double get netWorth => assets - liabilities;
   double get allocatedSavings => goals.fold(0, (s, g) => s + g.saved);
+  List<Entry> income(int month) =>
+      entries
+          .where(
+            (entry) =>
+                entry.date.year == demoDate.year &&
+                entry.date.month == month &&
+                entry.kind == 'income',
+          )
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+  double incomeTotal(int month) =>
+      income(month).fold(0, (total, entry) => total + entry.amount);
   List<Entry> spending(int month, {String? category}) =>
       entries
           .where(

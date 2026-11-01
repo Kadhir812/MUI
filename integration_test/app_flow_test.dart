@@ -18,10 +18,21 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Ask about your money…'));
-    await tester.tap(find.text('Ask about your money…'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Help with goal g1');
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('home-command-input')),
+      250,
+      scrollable: find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('home-command-input')),
+      'Help with goal g1',
+    );
     await tester.tap(find.byTooltip('Send question'));
     await tester.pumpAndSettle();
     expect(store.data.goals.first.monthly, 18000);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/store.dart';
 import '../../ui/components.dart';
 
@@ -39,6 +40,36 @@ class SettingsPage extends ConsumerWidget {
             ],
           ),
         ),
+        const SectionTitle('Connections & documents'),
+        const Notice(
+          'These are UI previews only. Do not enter real PAN, account, or broker details. Nothing is sent or saved.',
+        ),
+        Panel(
+          child: Column(
+            children: [
+              DataRowTile(
+                'Mutual funds',
+                'View details needed',
+                subtitle: 'PAN and a mutual-fund statement',
+                onTap: () => context.push('/connections/mutual-funds'),
+              ),
+              const Divider(),
+              DataRowTile(
+                'Stocks & demat',
+                'View details needed',
+                subtitle: 'Broker and demat verification details',
+                onTap: () => context.push('/connections/stocks'),
+              ),
+              const Divider(),
+              DataRowTile(
+                'Fixed deposits',
+                'View details needed',
+                subtitle: 'Bank and deposit certificate details',
+                onTap: () => context.push('/connections/fixed-deposits'),
+              ),
+            ],
+          ),
+        ),
         const SectionTitle('About this demo'),
         const Panel(
           child: Column(
@@ -51,7 +82,7 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
         const Notice(
-          'Still stores sample edits and expenses you add on this device. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
+          'Still stores sample edits and income and expense records you add on this device. Added records do not update sample balances. No bank connection, account sign-in, external AI service, or analytics is used. It is not a production banking app.',
         ),
         const SizedBox(height: 20),
         const Muted(
@@ -75,7 +106,7 @@ class SettingsPage extends ConsumerWidget {
                     builder: (ctx) => AlertDialog(
                       title: const Text('Reset sample data?'),
                       content: const Text(
-                        'Goal edits, transaction categories, and expenses you added are removed. Your appearance and privacy preferences stay unchanged. You can undo this reset.',
+                        'Goal edits, transaction categories, and income and expense records you added are removed. Your appearance and privacy preferences stay unchanged. You can undo this reset.',
                       ),
                       actions: [
                         TextButton(

@@ -8,10 +8,12 @@ An iOS-first Flutter financial-management demo with menuless navigation, complet
 
 - Overview, wealth and account detail.
 - Investment allocation, optional nested holdings ring, performance, stocks/MF/FD detail.
+- Monthly income history and local add-income records, alongside spending analysis.
 - Spending categories, weekly trend, search, month/account/activity filters, transaction detail and category editing.
 - Goal list, creation, detail, contribution history, editing, reviewed proposals and undo.
 - Credit scale, illustrative factors and exact score history.
 - Search for sections, holdings, goals and transactions; “last month groceries” intent.
+- Homepage “Ask Still” keyword routing to finance pages, with the local assistant as a fallback and exact-record Search still available.
 - Local assistant explanations grounded in the shared dataset, goal planning, and contextual transaction categorization.
 - Dark appearance, financial-value privacy, local persistence, one-level undo, and demo reset.
 - Platform-aware page navigation, visible Back controls, labelled chart alternatives, and reduced-motion page routing.
@@ -22,9 +24,9 @@ No sign-in, API keys, banking integration, real AI service, trading, transfer or
 
 The Dart domain checks passed and all Dart source files were parsed/formatted successfully. Native scaffold XML/plists/JSON and local imports were checked.
 
-**Flutter dependency resolution, full static analysis, compilation, widget/integration tests, and device visual QA were not completed in the authoring environment.** Flutter setup was stopped by an automatic security review after it attempted to contact the cloud instance metadata endpoint. It was not retried or bypassed.
+Flutter widget/store tests pass, and the income/home files pass targeted static analysis. Full-project analysis still reports three existing info-level notices in the assistant transaction proposal and domain-check script. Native device builds, integration tests, and full device visual QA are not certified here.
 
-This is implemented source, not a certified or device-verified build. See `docs/VERIFICATION.md` for exact checks and remaining work. The archive does not include an APK or IPA.
+Added income and expense entries are stored locally and update their respective summaries; they do not reconcile the illustrative account balances or net worth. This is implemented source, not a production banking app. See `docs/VERIFICATION.md` for the release checklist. The archive does not include an APK or IPA.
 
 ## Requirements
 
